@@ -16,11 +16,11 @@ declare global {
 
 const PUBLISHER_ID = process.env.NEXT_PUBLIC_ADSENSE_ID || "ca-pub-4389631952462736";
 
-// Ad slot IDs - Replace these with your actual slot IDs from AdSense
+// Ad slot IDs from AdSense
 const AD_SLOTS = {
-  sidebar: "", // Create in AdSense: Display ad, vertical
-  article: "", // Create in AdSense: In-article ad
-  footer: "",  // Create in AdSense: Display ad, horizontal
+  sidebar: "8249458786",
+  article: "4899233101",
+  footer: "4443759924",
 };
 
 export function AdUnit({ slot, format = "auto", className = "" }: AdUnitProps) {
@@ -77,7 +77,7 @@ export function SidebarAd() {
   );
 }
 
-// Discrete article ad - appears after content
+// Discrete article ad - appears after content (in-article format)
 export function ArticleAd() {
   if (!AD_SLOTS.article) return null;
 
@@ -86,8 +86,39 @@ export function ArticleAd() {
       <p className="text-[10px] text-muted-foreground/50 mb-3 uppercase tracking-wider text-center">
         Sponsored
       </p>
-      <AdUnit slot={AD_SLOTS.article} format="horizontal" />
+      <InArticleAd />
     </div>
+  );
+}
+
+// Special in-article ad format
+function InArticleAd() {
+  const adRef = React.useRef<HTMLModElement>(null);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        if (typeof window !== "undefined" && window.adsbygoogle && adRef.current) {
+          window.adsbygoogle.push({});
+        }
+      } catch (err) {
+        console.error("AdSense error:", err);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <ins
+      ref={adRef}
+      className="adsbygoogle"
+      style={{ display: "block", textAlign: "center" }}
+      data-ad-layout="in-article"
+      data-ad-format="fluid"
+      data-ad-client={PUBLISHER_ID}
+      data-ad-slot={AD_SLOTS.article}
+    />
   );
 }
 
