@@ -27,8 +27,7 @@ export function AdUnit({ slot, format = "auto", className = "" }: AdUnitProps) {
     }
   }, []);
 
-  // Publisher ID - Replace with your actual AdSense publisher ID
-  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_ID || "ca-pub-XXXXXXXXXXXXXXXX";
+  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_ID || "ca-pub-4389631952462736";
 
   return (
     <div ref={adRef} className={`ad-container ${className}`}>
