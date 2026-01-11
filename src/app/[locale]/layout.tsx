@@ -4,11 +4,14 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { AdblockDetector } from "@/components/ads";
+import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/json-ld";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
+
+const BASE_URL = "https://hytale-docs.com";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,28 +35,63 @@ export async function generateMetadata({
   const { locale } = await params;
 
   const descriptions: Record<string, string> = {
-    fr: "Documentation communautaire pour Hytale. Guides de gameplay, modding, serveurs et reference API.",
-    en: "Community documentation for Hytale. Gameplay, modding, servers and API reference guides.",
+    en: "Community documentation for Hytale. Gameplay guides, modding tutorials, server administration and API reference. Everything you need to master Hytale.",
+    fr: "Documentation communautaire pour Hytale. Guides de gameplay, tutoriels de modding, administration de serveurs et reference API. Tout ce dont vous avez besoin pour maitriser Hytale.",
   };
 
+  const titles: Record<string, string> = {
+    en: "HytaleDocs - Hytale Community Documentation & Wiki",
+    fr: "HytaleDocs - Documentation et Wiki Communautaire Hytale",
+  };
+
+  const currentUrl = locale === "en" ? BASE_URL : `${BASE_URL}/${locale}`;
+
   return {
-    metadataBase: new URL("https://hytaledocs.com"),
+    metadataBase: new URL(BASE_URL),
     title: {
-      default: "HytaleDocs",
+      default: titles[locale] || titles.en,
       template: "%s | HytaleDocs",
     },
-    description: descriptions[locale] || descriptions.fr,
+    description: descriptions[locale] || descriptions.en,
     keywords: [
       "Hytale",
-      "documentation",
-      "modding",
-      "wiki",
-      "guide",
-      "gameplay",
-      "serveur",
-      "API",
+      "Hytale wiki",
+      "Hytale documentation",
+      "Hytale modding",
+      "Hytale guide",
+      "Hytale gameplay",
+      "Hytale server",
+      "Hytale API",
+      "Hytale tutorial",
+      "Hytale blocks",
+      "Hytale items",
+      "Hytale NPCs",
+      "Hypixel Studios",
+      "Hytale early access",
+      "Hytale 2026",
     ],
-    authors: [{ name: "Hytale Community" }],
+    authors: [{ name: "HytaleDocs Community" }],
+    creator: "HytaleDocs",
+    publisher: "HytaleDocs",
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    alternates: {
+      canonical: currentUrl,
+      languages: {
+        en: BASE_URL,
+        fr: `${BASE_URL}/fr`,
+        "x-default": BASE_URL,
+      },
+    },
     icons: {
       icon: [
         { url: "/icon.png", type: "image/png" },
@@ -63,24 +101,28 @@ export async function generateMetadata({
       shortcut: "/logo-h.png",
     },
     openGraph: {
-      title: "HytaleDocs",
-      description: descriptions[locale] || descriptions.fr,
+      title: titles[locale] || titles.en,
+      description: descriptions[locale] || descriptions.en,
       type: "website",
+      url: currentUrl,
+      siteName: "HytaleDocs",
       locale: locale === "fr" ? "fr_FR" : "en_US",
+      alternateLocale: locale === "fr" ? "en_US" : "fr_FR",
       images: [
         {
-          url: "/logo-h.png",
+          url: `${BASE_URL}/logo-h.png`,
           width: 512,
           height: 512,
-          alt: "HytaleDocs",
+          alt: "HytaleDocs - Hytale Community Documentation",
         },
       ],
     },
     twitter: {
-      card: "summary",
-      title: "HytaleDocs",
-      description: descriptions[locale] || descriptions.fr,
-      images: ["/logo-h.png"],
+      card: "summary_large_image",
+      title: titles[locale] || titles.en,
+      description: descriptions[locale] || descriptions.en,
+      images: [`${BASE_URL}/logo-h.png`],
+      creator: "@HytaleDocs",
     },
   };
 }
@@ -126,6 +168,19 @@ export default async function LocaleLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
+        {/* Structured Data */}
+        <OrganizationJsonLd
+          name="HytaleDocs"
+          url={BASE_URL}
+          logo={`${BASE_URL}/logo-h.png`}
+          description="Community documentation for Hytale game"
+        />
+        <WebSiteJsonLd
+          name="HytaleDocs"
+          url={BASE_URL}
+          description="Community documentation for Hytale. Guides, tutorials, and references."
+        />
+
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

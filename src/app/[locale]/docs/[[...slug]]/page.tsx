@@ -10,6 +10,9 @@ import { getDocBySlug, getAllDocSlugs, getDocNavigation } from "@/lib/docs";
 import { mdxComponents } from "@/components/mdx";
 import { remarkAdmonitions } from "@/lib/remark-admonitions";
 import { ArticleAd } from "@/components/ads";
+import { BreadcrumbJsonLd, ArticleJsonLd } from "@/components/seo/json-ld";
+
+const BASE_URL = "https://hytale-docs.com";
 
 interface DocPageProps {
   params: Promise<{ slug?: string[]; locale: string }>;
@@ -42,9 +45,28 @@ export async function generateMetadata({
     };
   }
 
+  const slugPath = (slug || ["intro"]).join("/");
+  const currentUrl = locale === "en"
+    ? `${BASE_URL}/docs/${slugPath}`
+    : `${BASE_URL}/${locale}/docs/${slugPath}`;
+
   return {
     title: doc.meta.title,
     description: doc.meta.description,
+    alternates: {
+      canonical: currentUrl,
+      languages: {
+        en: `${BASE_URL}/docs/${slugPath}`,
+        fr: `${BASE_URL}/fr/docs/${slugPath}`,
+        "x-default": `${BASE_URL}/docs/${slugPath}`,
+      },
+    },
+    openGraph: {
+      title: doc.meta.title,
+      description: doc.meta.description,
+      type: "article",
+      url: currentUrl,
+    },
   };
 }
 
@@ -60,8 +82,30 @@ export default async function DocPage({ params }: DocPageProps) {
   const { prev, next } = getDocNavigation(actualSlug, locale);
   const t = await getTranslations({ locale, namespace: "docs" });
 
+  // Build breadcrumb items for JSON-LD
+  const breadcrumbItems = [
+    { name: "Home", url: BASE_URL },
+    { name: "Docs", url: `${BASE_URL}/docs` },
+    ...actualSlug.map((segment, index) => ({
+      name: segment.charAt(0).toUpperCase() + segment.slice(1),
+      url: `${BASE_URL}/docs/${actualSlug.slice(0, index + 1).join("/")}`,
+    })),
+  ];
+
+  const articleUrl = locale === "en"
+    ? `${BASE_URL}/docs/${actualSlug.join("/")}`
+    : `${BASE_URL}/${locale}/docs/${actualSlug.join("/")}`;
+
   return (
     <article className="max-w-5xl py-6 lg:py-8 lg:pr-8">
+      {/* Structured Data */}
+      <BreadcrumbJsonLd items={breadcrumbItems} />
+      <ArticleJsonLd
+        title={doc.meta.title}
+        description={doc.meta.description || ""}
+        url={articleUrl}
+      />
+
       {/* Breadcrumb */}
       <nav className="mb-8 flex items-center gap-2 text-sm">
         <Link
