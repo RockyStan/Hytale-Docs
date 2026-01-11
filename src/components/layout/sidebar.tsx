@@ -12,6 +12,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { sidebarConfig, type SidebarItem } from "@/config/sidebar";
+import { SidebarAd } from "@/components/ads";
 
 function SidebarLink({
   item,
@@ -94,6 +95,10 @@ export function Sidebar() {
             <SidebarLink key={item.titleKey} item={item} t={t} />
           ))}
         </nav>
+        {/* Discrete ad at bottom of sidebar */}
+        <div className="pl-3 pr-1">
+          <SidebarAd />
+        </div>
       </ScrollArea>
     </aside>
   );

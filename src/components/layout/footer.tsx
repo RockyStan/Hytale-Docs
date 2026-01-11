@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Github, MessageCircle, Twitter } from "lucide-react";
+import { FooterAd } from "@/components/ads";
 
 const socialLinks = [
   { title: "Discord", href: "https://discord.gg/hytale", icon: MessageCircle },
@@ -127,8 +128,11 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Discrete ad */}
+        <FooterAd />
+
         {/* Bottom */}
-        <div className="mt-12 pt-6 border-t border-border">
+        <div className="mt-8 pt-6 border-t border-border">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               &copy; {new Date().getFullYear()} {t("copyright")}

@@ -1,2 +1,2 @@
-export { AdUnit, SidebarAd, ContentAd } from "./ad-unit";
+export { AdUnit, SidebarAd, ArticleAd, FooterAd } from "./ad-unit";
 export { AdblockDetector } from "./adblock-detector";

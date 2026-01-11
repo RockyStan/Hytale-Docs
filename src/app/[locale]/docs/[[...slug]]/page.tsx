@@ -9,6 +9,7 @@ import { getTranslations } from "next-intl/server";
 import { getDocBySlug, getAllDocSlugs, getDocNavigation } from "@/lib/docs";
 import { mdxComponents } from "@/components/mdx";
 import { remarkAdmonitions } from "@/lib/remark-admonitions";
+import { ArticleAd } from "@/components/ads";
 
 interface DocPageProps {
   params: Promise<{ slug?: string[]; locale: string }>;
@@ -113,6 +114,9 @@ export default async function DocPage({ params }: DocPageProps) {
           }}
         />
       </div>
+
+      {/* Discrete ad after content */}
+      <ArticleAd />
 
       {/* Navigation */}
       <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-12" />
