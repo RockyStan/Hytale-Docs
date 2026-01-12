@@ -3,23 +3,33 @@ title: Système de Combat
 description: Maîtrisez les mécaniques de combat de Hytale
 ---
 
-# Système de Combat
+# Systeme de Combat
 
-Le combat dans Hytale est un système dynamique basé sur la gestion des ressources, le positionnement et la maîtrise des armes.
+Le combat dans Hytale est un **systeme tactique et reactif** avec une physique avancee incluant inertie, knockback et collisions realistes. Chaque arme possede son propre rythme, sa posture et ses attaques speciales uniques.
 
-## Mécaniques Fondamentales
+## Philosophie du Combat
+
+Le systeme de combat de Hytale repose sur plusieurs piliers :
+
+- **Lisibilite** - Les patterns d'ennemis sont clairs mais exigeants a maitriser
+- **Tactique** - Le positionnement et le timing sont cruciaux
+- **Physique avancee** - Inertie, knockback et collisions impactent le combat
+- **Diversite** - Chaque type d'arme offre une experience de jeu differente
+
+## Mecaniques Fondamentales
 
 ### Endurance
 
-L'**Endurance** est la ressource centrale du combat :
+L'**Endurance** est la **ressource essentielle** du combat. Sa gestion est primordiale pour survivre :
 
-- **Sprint** - Consomme de l'endurance
-- **Esquive** - Coût modéré
-- **Attaques spéciales** - Coût variable selon l'arme
-- **Blocage prolongé** - Drain continu
+- **Sprint** - Consomme de l'endurance progressivement
+- **Esquive** - Cout modere mais vital pour eviter les degats
+- **Attaques speciales** - Cout variable selon le type d'arme
+- **Blocage prolonge** - Drain continu tant que vous bloquez
+- **Recuperation** - Se regenere plus rapidement hors combat
 
-:::tip Gestion de l'Endurance
-Ne videz jamais complètement votre barre ! Gardez toujours une réserve pour esquiver.
+:::warning Gestion Critique de l'Endurance
+L'endurance est votre ressource de survie. Ne la videz **jamais completement** ! Gardez toujours une reserve pour esquiver ou fuir. Un joueur sans endurance est vulnerable aux combos ennemis.
 :::
 
 ### Positionnement
@@ -31,14 +41,23 @@ Le positionnement est crucial, surtout en PvP :
 - **Hauteur** - Avantage sur les ennemis en contrebas
 - **Distance** - Chaque arme a une portée optimale
 
-### Animations Directionnelles
+### Physique Avancee
 
-Les attaques sont téléphonées par des animations claires :
+Le systeme de combat integre une physique realiste :
 
-- **Préparation** - Le personnage arme son coup
-- **Direction** - Indique où l'attaque va frapper
-- **Fenêtre de parade** - Moment pour bloquer ou esquiver
-- **Recovery** - Temps de récupération après l'attaque
+- **Inertie** - Les mouvements ont du poids et de l'elan
+- **Knockback** - Les coups puissants repoussent les cibles
+- **Collisions** - L'environnement impacte le combat (murs, obstacles)
+- **Gravite** - Les attaques aeriennes et chutes ont des effets specifiques
+
+### Animations et Lisibilite
+
+Les attaques sont telephones par des animations claires et lisibles :
+
+- **Preparation** - Le personnage arme son coup (temps de wind-up)
+- **Direction** - Indique ou l'attaque va frapper
+- **Fenetre de parade** - Moment precis pour bloquer ou esquiver
+- **Recovery** - Temps de recuperation apres l'attaque (fenetre de punition)
 
 ## Types d'Attaques
 
@@ -150,10 +169,14 @@ Développez votre style :
 
 ### Contre les Ennemis
 
-1. **Observez les patterns** - Chaque ennemi a des tells
-2. **Attendez les ouvertures** - Attaquez après leurs combos
-3. **Utilisez l'environnement** - Hauteur, obstacles
-4. **Adaptez votre équipement** - Résistances appropriées
+Les patterns d'ennemis sont **lisibles mais exigeants** :
+
+1. **Observez les patterns** - Chaque ennemi a des tells visuels clairs
+2. **Apprenez les timings** - Les fenetres d'attaque sont precises
+3. **Attendez les ouvertures** - Attaquez apres leurs combos, pas pendant
+4. **Utilisez l'environnement** - Hauteur, obstacles, knockback contre les murs
+5. **Adaptez votre equipement** - Resistances appropriees selon l'ennemi
+6. **Gerez votre endurance** - Ne soyez jamais a court face a un ennemi dangereux
 
 ### En PvP
 

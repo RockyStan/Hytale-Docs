@@ -5,7 +5,7 @@ description: Les habitants d'Orbis - créatures amicales, neutres et hostiles
 
 # Créatures d'Orbis
 
-Orbis regorge de créatures diverses, des animaux paisibles aux monstres terrifiants. Chaque région possède sa faune unique.
+Orbis regorge de créatures diverses, des animaux paisibles aux monstres terrifiants. Chaque zone possède sa faune unique, liée aux éléments qui la caractérisent. Varyn et ses forces corrompues menacent ce monde, et les créatures reflètent cette lutte entre les forces naturelles et la corruption.
 
 ## Classification
 
@@ -23,12 +23,14 @@ Orbis regorge de créatures diverses, des animaux paisibles aux monstres terrifi
 - **Naturels** - Faune d'Orbis (animaux, insectes)
 - **Humanoïdes** - Races intelligentes (Kweebecs, Trorks, Ferans)
 - **Morts-vivants** - Créatures réanimées (squelettes, zombies)
-- **Élémentaires** - Entités magiques (golems, élémentaires)
-- **Démoniaques** - Corruption (démons, entités sombres)
+- **Élémentaires** - Entités magiques liées aux éléments de chaque zone
+- **Démoniaques** - Créatures corrompues par Varyn (démons, entités sombres)
 
-## Créatures par Région
+## Créatures par Zone
 
-### Central Grasslands
+### Zone 1 - Emerald Grove
+
+La première zone d'Orbis, caractérisée par ses forêts paisibles et ses créatures forestières.
 
 | Créature | Type | Danger |
 |----------|------|--------|
@@ -36,23 +38,18 @@ Orbis regorge de créatures diverses, des animaux paisibles aux monstres terrifi
 | Vache | Amical | Aucun |
 | Mouton | Amical | Aucun |
 | Poulet | Amical | Aucun |
+| Cerf | Neutre | Aucun |
 | Loup | Neutre | Faible |
 | Sanglier | Neutre | Faible |
-| Trork Scout | Hostile | Modéré |
-| Squelette | Hostile (nuit) | Modéré |
-
-### Emerald Wilds
-
-| Créature | Type | Danger |
-|----------|------|--------|
-| Cerf | Neutre | Aucun |
-| Fée | Amical | Aucun |
 | Ours | Neutre | Modéré |
-| Araignée géante | Hostile | Modéré |
+| Trork Scout | Hostile | Modéré |
 | Trork Guerrier | Hostile | Élevé |
-| Ent corrompu | Hostile | Élevé |
 
-### Howling Sands
+**Lore** : Les Kweebecs sont des alliés naturels du joueur dans cette zone forestière. Les Trorks représentent la principale menace hostile des forêts d'Emerald Grove.
+
+### Zone 2 - Howling Sands
+
+Le désert brûlant d'Orbis, où les créatures des sables règnent en maître.
 
 | Créature | Type | Danger |
 |----------|------|--------|
@@ -60,11 +57,16 @@ Orbis regorge de créatures diverses, des animaux paisibles aux monstres terrifi
 | Fennec | Amical | Aucun |
 | Scorpion | Neutre | Faible |
 | Serpent | Neutre | Modéré |
+| Créature des sables | Hostile | Modéré |
 | Momie | Hostile | Modéré |
 | Golem de sable | Hostile | Élevé |
 | Ver des sables | Hostile | Très élevé |
 
-### Whisperfrost Frontier
+**Lore** : Les créatures de cette zone sont liées à l'élément du sable et de la chaleur. Les momies et autres morts-vivants hantent les ruines anciennes.
+
+### Zone 3 - Borea
+
+Les terres glacées du nord d'Orbis, où seules les créatures arctiques survivent.
 
 | Créature | Type | Danger |
 |----------|------|--------|
@@ -72,37 +74,48 @@ Orbis regorge de créatures diverses, des animaux paisibles aux monstres terrifi
 | Pingouin | Amical | Aucun |
 | Loup arctique | Neutre | Modéré |
 | Ours polaire | Neutre | Élevé |
+| Créature des glaces | Hostile | Élevé |
 | Yéti | Hostile | Élevé |
 | Élémentaire de glace | Hostile | Très élevé |
 
-### Devastated Lands
+**Lore** : Les créatures de Borea sont adaptées au froid extrême et liées à l'élément de la glace.
+
+### Zone 4 - Devastated Lands
+
+Les terres dévastées, corrompues par Varyn. Les ennemis les plus dangereux d'Orbis s'y trouvent.
 
 | Créature | Type | Danger |
 |----------|------|--------|
+| Créature volcanique | Hostile | Élevé |
+| Créature souterraine | Hostile | Élevé |
 | Démon mineur | Hostile | Élevé |
 | Mort-vivant avancé | Hostile | Élevé |
 | Golem corrompu | Hostile | Très élevé |
 | Seigneur démon | Boss | Extrême |
 
+**Lore** : Cette zone abrite les forces de Varyn et les créatures les plus corrompues. Les ennemis y sont les plus dangereux de tout Orbis, mêlant créatures volcaniques et entités souterraines.
+
 ## Factions Intelligentes
 
 ### Kweebecs
 
-Petits êtres forestiers amicaux.
+Petits êtres forestiers amicaux, alliés du joueur dans Emerald Grove.
 
 - **Attitude** : Alliés naturels du joueur
-- **Habitat** : Villages dans les forêts
+- **Habitat** : Villages dans les forêts d'Emerald Grove (Zone 1)
 - **Commerce** : Vendent nourriture et objets de base
 - **Quêtes** : Proposent des missions
+- **Lore** : Ils luttent contre les forces de Varyn aux côtés du joueur
 
 ### Trorks
 
-Race guerrière hostile.
+Race guerrière hostile, créatures des forêts d'Emerald Grove.
 
 - **Attitude** : Hostiles par défaut
-- **Habitat** : Camps et forteresses
+- **Habitat** : Camps et forteresses dans les forêts
 - **Équipement** : Armes et armures uniques
 - **Hiérarchie** : Scouts → Guerriers → Shamans → Chefs
+- **Lore** : Principale menace hostile de la Zone 1
 
 ### Ferans
 
@@ -144,17 +157,18 @@ Chaque créature peut lâcher :
 
 ## Apprivoisement
 
-Certaines créatures peuvent devenir des compagnons :
+> **Note (janvier 2026)** : Les animaux de compagnie apprivoisables ne seront pas disponibles au lancement de Hytale. Cette fonctionnalité est prévue pour une mise à jour future.
 
-### Montures
+### Montures (au lancement)
 
-| Créature | Région | Vitesse | Capacité |
-|----------|--------|---------|----------|
-| Cheval | Grasslands | Rapide | Équilibrée |
+| Créature | Zone | Vitesse | Capacité |
+|----------|------|---------|----------|
+| Cheval | Emerald Grove | Rapide | Équilibrée |
 | Chameau | Howling Sands | Moyenne | Endurance |
-| Loup de guerre | Borea | Rapide | Combat |
 
-### Familiers
+### Familiers (post-lancement)
+
+> Ces fonctionnalités seront ajoutées après le lancement du jeu.
 
 | Créature | Effet |
 |----------|-------|
@@ -169,6 +183,13 @@ Certaines créatures peuvent devenir des compagnons :
 - [Factions](/docs/gameplay/creatures/factions)
 - [Régions](/docs/gameplay/world/regions)
 
+## Fonctionnalités Non Disponibles au Lancement
+
+Certaines fonctionnalités liées aux créatures ne seront pas présentes au lancement de Hytale :
+
+- **Animaux de compagnie apprivoisables** - Prévu pour une mise à jour future
+- **Système de pêche** - Prévu pour une mise à jour future
+
 ---
 
-*Source : [Hytale Wiki](https://hytale.fandom.com), [HytaleGuide](https://hytaleguide.net/mobs)*
+*Dernière mise à jour : janvier 2026*

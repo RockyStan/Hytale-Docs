@@ -20,10 +20,14 @@ Située en haut à gauche :
 
 ### Barre d'Endurance
 
-Sous la barre de vie :
-- **Endurance** - Ressource pour sprint, esquive, attaques spéciales
-- **Régénération** - Se remplit rapidement au repos
-- **Épuisement** - Actions limitées si vide
+Sous la barre de vie, **ressource essentielle du combat** :
+- **Endurance** - Ressource pour sprint, esquive, attaques speciales
+- **Regeneration** - Se remplit rapidement au repos, plus lentement en combat
+- **Epuisement** - Actions limitees si vide, vous rend vulnerable
+
+:::warning Importance de l'Endurance
+L'endurance est cruciale en combat. Ne la videz jamais completement car vous serez incapable d'esquiver les attaques ennemies.
+:::
 
 ### Barre de Mana
 
@@ -115,16 +119,19 @@ Appuyez sur **M** pour la carte complète.
 | Point d'exclamation | Quête active |
 | Coffre | Loot découvert |
 
-## Journal de Quêtes
+## Journal de Quetes
 
-Appuyez sur **J** pour les quêtes.
+Appuyez sur **J** pour les quetes.
+
+:::info Adventure Mode
+Le mode Aventure avec la campagne narrative et les quetes principales n'est pas disponible au lancement. Il sera ajoute dans une mise a jour ulterieure.
+:::
 
 ### Organisation
 
-- **Quêtes principales** - Histoire du jeu
-- **Quêtes secondaires** - Missions optionnelles
-- **Défis quotidiens** - Récompenses journalières
-- **Succès** - Accomplissements permanents
+- **Quetes secondaires** - Missions optionnelles des PNJ
+- **Defis** - Objectifs a accomplir
+- **Succes** - Accomplissements permanents
 
 ### Suivi
 

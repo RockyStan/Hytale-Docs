@@ -5,21 +5,32 @@ description: Guide complet des armes disponibles dans Hytale
 
 # Armes
 
-Les armes dans Hytale définissent votre style de combat. Chaque type possède son propre rythme, ses combos et ses attaques spéciales.
+Les armes dans Hytale definissent votre style de combat. **Chaque arme possede son propre rythme, sa posture et ses attaques speciales**. Le choix de votre armement impacte directement votre facon de jouer et vos options tactiques en combat.
+
+## Philosophie des Armes
+
+Dans Hytale, chaque arme est unique :
+
+- **Rythme propre** - Vitesse d'attaque et timings specifiques
+- **Posture distincte** - Animation et stance de combat uniques
+- **Attaques speciales** - Capacites exclusives a chaque type d'arme
+- **Style de jeu** - Chaque arme favorise une approche tactique differente
 
 ## Classification
 
-Les armes sont divisées en trois catégories principales :
+Les armes sont divisees en trois categories principales :
 
-- **Mêlée** - Combat rapproché
-- **Distance** - Combat à portée
-- **Magie** - Sorts et grimoires
+- **Melee** - Combat rapproche, timing et positionnement cruciaux
+- **Distance** - Combat a portee, gestion des munitions
+- **Magie** - Sorts et grimoires, gestion du mana
 
-## Armes de Mêlée
+## Armes de Melee
 
-### Épées
+Le combat de melee dans Hytale repose sur la **physique avancee** : inertie, knockback et collisions impactent chaque echange. Maitrisez le timing de vos attaques et les fenetres de recuperation de vos ennemis.
 
-L'arme équilibrée par excellence.
+### Epees
+
+L'arme equilibree par excellence, ideale pour debuter.
 
 | Variante | Mains | Vitesse | Dégâts | Spécial |
 |----------|-------|---------|--------|---------|

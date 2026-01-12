@@ -5,11 +5,11 @@ description: Découvrez le monde de Hytale et ses mystères
 
 # Le Monde d'Orbis
 
-Orbis est le monde de Hytale, une planète riche et diverse où se déroule votre aventure.
+Orbis est le monde de Hytale, une planète riche et diverse où se déroule votre aventure en tant que **Cursebreaker**.
 
 ## Présentation
 
-Orbis est un monde généré procéduralement, ce qui signifie que chaque partie est unique. Le monde est divisé en **Régions**, chacune avec ses propres biomes, créatures, ressources et défis.
+Orbis est un monde généré procéduralement, ce qui signifie que chaque partie est unique. Le monde est divisé en **Zones**, chacune associée à un élément et possédant ses propres biomes, créatures, ressources et défis.
 
 ### Caractéristiques
 
@@ -17,51 +17,78 @@ Orbis est un monde généré procéduralement, ce qui signifie que chaque partie
 - **Verticalité** - Grottes profondes et montagnes élevées
 - **Cycle jour/nuit** - Affecte les créatures et le gameplay
 - **Météo dynamique** - Pluie, neige, tempêtes
+- **Système élémentaire** - Chaque zone est liée à un élément (Terre, Air, Eau, Feu, etc.)
 
-## Structure du Monde
+## Lore d'Orbis
 
-### Régions
+### Les Divinités
 
-Les Régions ont remplacé l'ancien système de "Zones". Chaque région représente une collection de 3 à 5 biomes avec un thème cohérent.
+Le monde d'Orbis est façonné par deux forces divines :
 
-| Région | Thème | Biomes |
-|--------|-------|--------|
-| Central Grasslands | Prairies tempérées | Plaines, forêts clairsemées, collines |
-| Emerald Wilds | Forêts denses | Forêt profonde, clairières, marécages |
-| Howling Sands | Désert aride | Dunes, oasis, canyons |
-| Whisperfrost Frontier | Terres gelées | Taïga, toundra, glaciers |
-| Devastated Lands | Terres corrompues | Ruines, volcans, désolation |
+- **Gaia** - Déesse de la création et de la vie
+- **Varyn** - Dieu de la destruction et du chaos
 
-### Anciens Zones (Historique)
+### Personnages Clés
 
-Le système original comprenait 4 zones majeures :
+- **Tessa** - Personnage principal, guide pour les joueurs
+- **Kyros** - Autre personnage important dans l'histoire
 
-1. **Zone 1 - Emerald Grove** - Forêts verdoyantes
-2. **Zone 2 - Howling Sands** - Déserts brûlants
-3. **Zone 3 - Borea** - Terres glacées
-4. **Zone 4 - Devastated Lands** - Territoire corrompu
+### Le Rôle du Joueur
 
-Ces zones ont été subdivisées en régions plus petites mais plus détaillées.
+Les joueurs incarnent des **Cursebreakers**, des héros destinés à combattre les forces de corruption qui menacent Orbis.
+
+### Les Alterverses
+
+Un concept prévu pour le contenu futur : des dimensions alternatives d'Orbis offrant de nouvelles possibilités d'exploration et d'aventure.
+
+## Zones d'Orbis
+
+### Zones Disponibles au Lancement
+
+Quatre zones seront accessibles dès la sortie du jeu :
+
+| Zone | Nom | Thème | Élément |
+|------|-----|-------|---------|
+| Zone 1 | Emerald Grove | Forêts luxuriantes et rivières | Terre |
+| Zone 2 | Howling Sands | Vastes déserts et canyons | Air |
+| Zone 3 | Borea | Toundras glaciales et montagnes enneigées | Eau |
+| Zone 4 | Devastated Lands | Terres volcaniques souterraines | Feu |
+
+### Zones Futures (Non disponibles au lancement)
+
+Deux zones supplémentaires sont confirmées pour des mises à jour ultérieures :
+
+| Zone | Nom | Thème | Élément | Statut |
+|------|-----|-------|---------|--------|
+| Zone 5 | Skylands | Îles flottantes | Foudre/Électricité | Confirmé dans les outils de développement |
+| Zone 6 | Poisonlands | Terres empoisonnées | Vide/Corruption | Existence confirmée |
 
 ## Génération du Monde
 
-### World Generation V1
+Hytale utilise deux systèmes de génération de monde :
 
-Le système de lancement avec :
+### World Generation V1 (2016-2020)
+
+Le système utilisé au lancement avec :
 - Nombreux biomes jouables
 - Contenu prêt pour l'exploration
-- Structures et donjons
+- Structures et donjons variés
+- Base solide pour le mode Exploration
 
-### World Generation V2
+### World Generation V2 (Depuis 2021)
 
-En développement, apportera :
-- Biomes plus détaillés
-- Transitions plus naturelles
+Nouveau système en développement actif :
+- Biomes plus détaillés et immersifs
+- Transitions plus naturelles entre les zones
 - Nouvelles régions à explorer
-- Le "vrai" monde d'Orbis
+- Le "vrai" monde d'Orbis tel qu'envisagé par les développeurs
 
-:::tip Mise à jour
-V2 deviendra le générateur principal après son achèvement. Les mondes V1 resteront jouables.
+:::tip Accès au contenu V2
+Les joueurs pourront accéder au contenu V2 en construction via des **Gateways** dans le mode Exploration. Cela permet de découvrir les nouveaux biomes au fur et à mesure de leur développement.
+:::
+
+:::info Transition V1 vers V2
+V2 remplacera complètement V1 une fois son développement achevé. Les mondes V1 resteront jouables pendant la période de transition.
 :::
 
 ## Points d'Intérêt (POI)
@@ -82,6 +109,7 @@ Le monde est parsemé de structures et lieux spéciaux :
 - **Tours** - Défis verticaux
 - **Donjons** - Aventures souterraines
 - **Temples** - Lore et trésors
+- **Gateways** - Portails vers le contenu V2
 
 ### Ruines
 
@@ -97,13 +125,14 @@ Le monde est parsemé de structures et lieux spéciaux :
 2. **Préparez-vous** - Nourriture, armes, torches
 3. **Observez l'environnement** - Indices visuels
 4. **Progressez par étapes** - Ne vous éloignez pas trop vite
+5. **Adaptez-vous à l'élément** - Chaque zone a ses propres défis
 
 ### Récompenses
 
 L'exploration rapporte :
-- **Ressources rares** - Matériaux exclusifs par région
+- **Ressources rares** - Matériaux exclusifs par zone
 - **Équipement unique** - Trouvé dans les coffres
-- **Connaissances** - Lore et histoire
+- **Connaissances** - Lore et histoire d'Orbis
 - **Expérience** - Progression du personnage
 
 ## Le Ciel et l'Espace
@@ -111,11 +140,11 @@ L'exploration rapporte :
 Orbis possède :
 - **Deux lunes** - Affectent les marées et certaines créatures
 - **Constellations** - Navigation nocturne
-- **Aurores** - Phénomènes dans les régions froides
+- **Aurores** - Phénomènes dans Borea (Zone 3)
 
 ## Voir Aussi
 
-- [Régions](/docs/gameplay/world/regions)
+- [Zones](/docs/gameplay/world/regions)
 - [Biomes](/docs/gameplay/world/biomes)
 - [Donjons](/docs/gameplay/world/dungeons)
 

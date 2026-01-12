@@ -21,10 +21,12 @@ Bienvenue sur Orbis ! Ce guide vous accompagnera dans vos premières heures de j
 
 ### Premier Lancement
 
-1. Téléchargez Hytale depuis [hytale.com](https://hytale.com)
+1. Telechargez Hytale depuis [hytale.com](https://hytale.com)
 2. Installez le jeu
 3. Connectez-vous avec votre compte Hytale
-4. Choisissez votre mode de jeu
+4. Choisissez votre mode de jeu :
+   - **Exploration Mode** (Survival) - Aventure complete avec survie
+   - **Creative Mode** - Construction libre avec outils avances
 
 ## Création de Personnage
 
@@ -69,9 +71,13 @@ Vous commencez dans les **Prairies Centrales** (Central Grasslands), le cœur d'
 
 ### Combat
 
-- Utilisez l'**endurance** avec sagesse
-- Apprenez les patterns d'attaque des ennemis
-- Bloquez et esquivez avant de contre-attaquer
+Le systeme de combat de Hytale est **tactique et exigeant** :
+
+- **L'endurance est essentielle** - Ne la videz jamais completement
+- **Patterns lisibles** - Les ennemis telephones leurs attaques, apprenez a les lire
+- **Physique avancee** - Utilisez le knockback et les collisions a votre avantage
+- **Timing precis** - Bloquez et esquivez avant de contre-attaquer
+- **Chaque arme est unique** - Experimentez pour trouver votre style
 
 ### Ressources
 
@@ -79,14 +85,16 @@ Vous commencez dans les **Prairies Centrales** (Central Grasslands), le cœur d'
 - Les coffres dans le monde contiennent des objets utiles
 - Parlez aux PNJ pour des quêtes et conseils
 
-## Prochaines Étapes
+## Prochaines Etapes
 
-Une fois les bases maîtrisées :
+Une fois les bases maitrisees :
 
-1. Explorez les **donjons** pour du meilleur équipement
+1. Explorez les **donjons** pour du meilleur equipement
 2. Apprenez la **cuisine** pour des buffs
-3. Développez vos **compétences de combat**
-4. Découvrez de nouvelles **régions**
+3. Developpez vos **competences de combat** et maitrisez differentes armes
+4. Decouvrez la **magie** avec ses ecoles offensives, defensives et utilitaires
+5. Decouvrez de nouvelles **regions** avec leurs biomes uniques
+6. Rejoignez des **serveurs multijoueur** pour jouer avec la communaute
 
 :::tip Sauvegarde
 Hytale sauvegarde automatiquement votre progression. En mode solo, vous pouvez aussi créer des sauvegardes manuelles.

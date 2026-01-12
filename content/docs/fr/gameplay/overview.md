@@ -11,11 +11,46 @@ Bienvenue dans le guide complet pour les joueurs de Hytale. Que vous soyez débu
 
 Hytale est un jeu d'aventure et de création développé par Hypixel Studios. Il combine exploration, combat, construction et création dans un monde généré procéduralement appelé **Orbis**.
 
-Le jeu propose plusieurs modes :
+## Modes de Jeu Disponibles au Lancement
 
-- **Mode Aventure** - Explorez Orbis, combattez des créatures, découvrez des donjons et progressez dans une histoire épique
-- **Mode Créatif** - Construisez librement avec tous les outils et blocs disponibles
-- **Mini-jeux** - Rejoignez des serveurs communautaires pour des expériences multijoueur variées
+### Exploration Mode (Survival)
+
+Le mode principal de Hytale pour l'aventure :
+
+- **Generation procedurale du monde** - Chaque partie offre un monde unique
+- **Biomes varies** - Explorez des environnements distincts avec leurs propres ressources
+- **Minage et crafting** - Recoltez des materiaux et fabriquez equipements et objets
+- **Combat tactique** - Affrontez des creatures hostiles avec un systeme de combat exigeant
+- **Donjons et secrets** - Decouvrez des structures cachees et des tresors
+- **Interaction avec les PNJ** - Rencontrez les habitants d'Orbis
+
+### Creative Mode
+
+Liberez votre creativite avec des outils puissants :
+
+- **Acces illimite aux blocs** - Tous les materiaux disponibles instantanement
+- **Scripted Brushes** - Pinceaux scriptes pour des constructions complexes
+- **Selection Tool** - Outils de selection et manipulation avances
+- **Prefabs** - Sauvegardez et reutilisez vos creations
+- **Outils Machinima** - Creation cinematographique integree
+- **Changeur de modele de personnage** - Personnalisez l'apparence de votre avatar
+
+### Multijoueur
+
+- **Serveurs communautaires** - Fonctionnels des le jour 1 du lancement
+- **Support complet du modding** - Les serveurs peuvent implementer leurs propres regles et contenus
+
+## Contenu Prevu pour Plus Tard
+
+:::info Non disponible au lancement
+Les fonctionnalites suivantes ne seront pas presentes a la sortie mais sont prevues pour des mises a jour ulterieures :
+:::
+
+- **Adventure Mode** - Campagne narrative avec quetes et histoire
+- **Mini-jeux officiels** - Modes type Bedwars, Skywars
+- **Peche** - Systeme de peche complet
+- **Animaux de compagnie apprivoisables** - Creatures domesticables
+- **Chat vocal de proximite** - Communication vocale in-game
 
 ## Sections du Guide
 

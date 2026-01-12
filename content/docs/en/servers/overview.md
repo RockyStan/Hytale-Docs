@@ -17,7 +17,8 @@ Hytale uses a **server-first architecture** where all game content lives on the 
 - Even single-player runs through a local server
 - Clients connect without installing mods
 - Server streams all content automatically
-- All game logic executes server-side
+- **All mods execute server-side** - no client-side mod installation needed
+- **Native routing between servers** - no need for BungeeCord or similar proxies
 
 > "Hypixel Studios chose Java for Hytale servers because their backend team is very comfortable writing high-performance Java, which has let them heavily optimize server code."
 > — [Server Technology Overview](https://hytale.com/news/2019/1/an-overview-of-hytales-server-technology)
@@ -28,10 +29,16 @@ Hytale uses a **server-first architecture** where all game content lives on the 
 |--------------|-------|
 | Server Language | Java |
 | Client Language | C# |
-| Protocol | QUIC |
+| Protocol | **QUIC** (UDP-based) |
+| Default Port | **UDP 5520** |
 | Tick Rate | 30 TPS (default) |
-| Java Version | **Java 25** required |
+| Java Version | **Java 25** required (Adoptium recommended) |
+| Architectures | **x64 and arm64** supported |
 | Gradle | 9.2.0 (for plugin development) |
+
+:::info Network Protocol
+Hytale uses the QUIC protocol over UDP port 5520. No TCP port forwarding is required.
+:::
 
 ### Source Code Availability
 
@@ -43,33 +50,30 @@ The server is **not obfuscated**, allowing you to decompile it to understand int
 
 **View distance** is the biggest factor in both client and server performance. Doubling view distance (e.g., 192 to 384 blocks) quadruples the amount of data the server must handle.
 
-### Minimum (Small Server, ~10-16 players)
+- **Maximum recommended view distance**: 12 chunks (384 blocks)
+- This is equivalent to 24 chunks in Minecraft
+
+### Minimum Requirements
 
 | Component | Requirement |
 |-----------|-------------|
-| CPU | 4 cores, 2GHz+ (speed > core count) |
-| RAM | 4-6 GB |
+| CPU | High single-thread performance (4.0GHz+) |
+| RAM | **4 GB minimum** |
 | Storage | 50 GB NVMe SSD |
-| Java | **Java 25** |
-| Network | 100 Mbps upload |
+| Java | **Java 25** (Adoptium recommended) |
+| Network | UDP port 5520 open |
 
-### Recommended (Medium Server, ~20-30 players)
+### Recommended by Player Count
 
-| Component | Requirement |
-|-----------|-------------|
-| CPU | 6+ cores, fast clock speed |
-| RAM | 8-12 GB |
-| Storage | 100 GB NVMe SSD |
-| Network | 500 Mbps upload |
+| Players | RAM | CPU | Notes |
+|---------|-----|-----|-------|
+| 1-10 | 4 GB | 4.0GHz+ single-thread | Minimum specs sufficient |
+| 25-50 | 8-12 GB | High single-thread frequency | Prioritize clock speed over cores |
+| 50+ | 16 GB+ | High-performance | Adjust based on monitoring |
 
-### Large Servers (50+ players)
-
-| Component | Requirement |
-|-----------|-------------|
-| CPU | 8+ cores, high single-thread performance |
-| RAM | 16-32 GB |
-| Storage | 200 GB NVMe SSD |
-| Network | 1 Gbps upload |
+:::tip CPU Performance
+Hytale servers benefit more from **high single-thread CPU performance** than from many cores. Prioritize clock speed over core count when selecting hardware.
+:::
 
 :::tip Storage Performance
 World loading and generation depend heavily on disk speed. NVMe SSDs provide the best results and help prevent stutters when players explore new areas. Avoid traditional hard drives.
@@ -79,7 +83,7 @@ World loading and generation depend heavily on disk speed. NVMe SSDs provide the
 
 1. **Download** the server files from [hytale.com](https://hytale.com)
 2. **Configure** your `server.properties` file
-3. **Open ports** (default: 25565)
+3. **Open port** UDP 5520 (QUIC protocol)
 4. **Start** the server
 
 ```bash
@@ -95,9 +99,9 @@ java -Xms4G -Xmx8G -jar hytale-server.jar
 ```properties
 # server.properties
 server-name=My Hytale Server
-port=25565
+port=5520
 max-players=50
-view-distance=10
+view-distance=12
 ```
 
 [Full Configuration Reference →](/docs/servers/setup/configuration)
@@ -112,7 +116,7 @@ view-distance=10
 
 ### Security Considerations
 
-- Configure firewall rules
+- Configure firewall rules (UDP 5520)
 - Use whitelist for private servers
 - Regular backups
 - DDoS protection for public servers
@@ -154,7 +158,7 @@ services:
   hytale:
     image: hytale-server:latest
     ports:
-      - "25565:25565"
+      - "5520:5520/udp"
     volumes:
       - ./data:/server
     environment:

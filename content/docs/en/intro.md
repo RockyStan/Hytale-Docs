@@ -14,7 +14,23 @@ The **Hytale Developer Wiki** is your comprehensive resource for everything rela
 
 Hytale is a sandbox RPG developed by Hypixel Studios that launched in Early Access on **January 13, 2026**. Built from the ground up with modding at its core, Hytale offers unprecedented customization possibilities.
 
-After being [reacquired by its original founders](https://hytale.com/news/2025/11/hytale-is-saved) Simon Collins-Laflamme and Philippe Touchette in November 2025, the game was released with a commitment to community-driven development and full modding support from day one.
+### Launch Details
+
+- **Release Date:** January 13, 2026 (Early Access)
+- **Platforms:** Windows only at launch (Mac and Linux support coming later)
+- **Distribution:** Available exclusively via the official launcher at [hytale.com](https://hytale.com) (not on Steam)
+- **Pricing:**
+  - Standard Edition: $19.99
+  - Supporter Edition: $34.99
+  - Cursebreaker Founders Edition: $69.99
+- **Expected Players:** Over 1 million players anticipated at launch
+
+### Development History
+
+After being [reacquired by its original founders](https://hytale.com/news/2025/11/hytale-is-saved) Simon Collins-Laflamme and Philippe Touchette from Riot Games in November 2025, the game was released with a commitment to community-driven development and full modding support from day one.
+
+- **Studio:** Hypixel Studios (50+ developers)
+- **Development Funding:** 2 years of development funded by pre-orders
 
 ### Key Features for Developers
 

@@ -47,14 +47,23 @@ Maîtrisez les commandes de Hytale pour une expérience optimale.
 
 ## Construction
 
-| Action | Touche Par Défaut |
+| Action | Touche Par Defaut |
 |--------|-------------------|
 | Placer bloc | Clic Droit |
-| Détruire bloc | Clic Gauche (maintenu) |
-| Sélectionner bloc | Molette |
+| Detruire bloc | Clic Gauche (maintenu) |
+| Selectionner bloc | Molette |
 | Copier bloc (pick) | Clic Molette |
 | Faire pivoter | R |
 | Mode construction | B |
+
+### Outils du Mode Creatif
+
+En mode Creatif, des outils avances sont disponibles :
+
+- **Scripted Brushes** - Pinceaux scriptes pour constructions complexes
+- **Selection Tool** - Selection et manipulation de zones
+- **Prefabs** - Sauvegarde et reutilisation de structures
+- **Outils Machinima** - Creation cinematographique
 
 ## Caméra
 
@@ -69,12 +78,15 @@ Maîtrisez les commandes de Hytale pour une expérience optimale.
 
 ## Social
 
-| Action | Touche Par Défaut |
+| Action | Touche Par Defaut |
 |--------|-------------------|
 | Liste des joueurs | Tab (maintenu) |
-| Chat vocal (push-to-talk) | V |
 | Emotes | Y |
 | Menu social | O |
+
+:::info Chat Vocal
+Le chat vocal de proximite n'est pas disponible au lancement mais est prevu pour une mise a jour ulterieure.
+:::
 
 ## Personnalisation
 

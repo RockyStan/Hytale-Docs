@@ -10,6 +10,18 @@ description: Get started with Hytale modding and server development
 
 Welcome to Hytale development! This guide will help you understand the fundamentals of creating content for Hytale.
 
+## About Hytale
+
+Hytale launched in Early Access on **January 13, 2026**, developed by Hypixel Studios - a team of over 50 developers led by original founders Simon Collins-Laflamme and Philippe Touchette, who reacquired the project from Riot Games in November 2025.
+
+### Availability
+
+- **Platforms:** Windows only at launch (Mac and Linux support coming later)
+- **Distribution:** Available exclusively via the official launcher at [hytale.com](https://hytale.com) (not on Steam)
+- **Pricing:** Standard ($19.99), Supporter ($34.99), Cursebreaker Founders ($69.99)
+- **Players:** Over 1 million players expected at launch
+- **Development:** 2 years of development funded by pre-orders
+
 ## Why Mod Hytale?
 
 Hytale was designed from the ground up with modding at its core. Unlike many games where modding is an afterthought, Hytale provides:

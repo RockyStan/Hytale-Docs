@@ -5,7 +5,7 @@ description: Le système magique de Hytale - sorts, grimoires et écoles de magi
 
 # Magie
 
-La magie dans Hytale offre des options offensives, défensives et utilitaires pour diversifier votre gameplay.
+La magie dans Hytale est un systeme complet organise en **plusieurs ecoles** : offensive, defensive et utilitaire. Elle offre une alternative strategique au combat physique et peut etre combinee avec les armes traditionnelles.
 
 ## Système de Mana
 
@@ -46,11 +46,19 @@ Les grimoires sont les armes magiques principales. Chaque grimoire contient des 
 - **Épique** - 5+ sorts, sorts uniques
 - **Légendaire** - Sorts exclusifs puissants
 
-## Écoles de Magie
+## Ecoles de Magie
 
-### Magie Élémentaire
+Le systeme magique de Hytale est divise en trois grandes categories :
 
-Contrôle des éléments naturels.
+| Categorie | Role | Exemples |
+|-----------|------|----------|
+| **Offensive** | Infliger des degats | Feu, Foudre, Tenebres |
+| **Defensive** | Protection et soins | Lumiere, Glace (armure) |
+| **Utilitaire** | Mobilite et controle | Arcane, Nature |
+
+### Magie Elementaire (Offensive)
+
+Controle des elements naturels pour infliger des degats.
 
 **Feu**
 | Sort | Coût Mana | Effet |
@@ -75,9 +83,9 @@ Contrôle des éléments naturels.
 | Chaîne d'éclairs | 45 | Rebondit entre ennemis |
 | Tempête | 60 | Zone massive |
 
-### Magie des Ténèbres
+### Magie des Tenebres (Offensive)
 
-Pouvoirs sombres et malédictions.
+Pouvoirs sombres et maledictions pour des degats devastateurs.
 
 | Sort | Coût Mana | Effet |
 |------|-----------|-------|
@@ -90,9 +98,9 @@ Pouvoirs sombres et malédictions.
 Certains sorts sombres peuvent avoir des effets secondaires négatifs sur le lanceur.
 :::
 
-### Magie de Lumière
+### Magie de Lumiere (Defensive)
 
-Soins et protection.
+Ecole specialisee dans les soins et la protection.
 
 | Sort | Coût Mana | Effet |
 |------|-----------|-------|
@@ -102,9 +110,9 @@ Soins et protection.
 | Purification | 35 | Retire les debuffs |
 | Résurrection | 100 | Relève un allié (cooldown long) |
 
-### Magie Arcanique
+### Magie Arcanique (Utilitaire)
 
-Utilitaires et contrôle.
+Ecole axee sur la mobilite, le controle et les utilitaires.
 
 | Sort | Coût Mana | Effet |
 |------|-----------|-------|
@@ -114,9 +122,9 @@ Utilitaires et contrôle.
 | Invisibilité | 50 | Furtivité |
 | Portail | 80 | Téléportation longue distance |
 
-### Magie Naturelle
+### Magie Naturelle (Utilitaire/Defensive)
 
-Connexion avec la nature.
+Connexion avec la nature pour le controle et le soutien.
 
 | Sort | Coût Mana | Effet |
 |------|-----------|-------|
