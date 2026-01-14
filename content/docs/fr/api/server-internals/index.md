@@ -12,6 +12,10 @@ description: Documentation technique v2 du serveur Hytale - Architecture, API, P
   <span className="badge badge--primary">Version 2.0 - Documentation Verifiee</span>
 </div>
 
+:::warning Avis sur la Précision de la Documentation
+Cette documentation est basée sur du **code source décompilé** et peut contenir des erreurs ou inexactitudes. Bien que nous vérifions contre le code réel, certaines informations peuvent être incomplètes, obsolètes ou mal interprétées. **Testez toujours vos implémentations** et ne vous fiez pas uniquement à cette documentation. Vous avez trouvé une erreur ? [Signalez-la sur GitHub](https://github.com/timiliris/Hytale-Docs/issues) pour aider à améliorer la qualité !
+:::
+
 :::info Documentation v2 - Vérifiée par Multi-Agent
 
 Cette documentation a été générée par un système d'analyse multi-agent qui :

@@ -8,6 +8,10 @@ description: The definitive resource for Hytale modding, server administration, 
 
 # Welcome to Hytale Developer Wiki
 
+:::warning Community Documentation Notice
+This documentation is **community-maintained** and may contain errors or inaccuracies. While we strive for accuracy by verifying against decompiled source code, some information may be incomplete or outdated. If you find any errors, please [report them on GitHub](https://github.com/timiliris/Hytale-Docs/issues) to help us improve the quality of this documentation.
+:::
+
 The **Hytale Developer Wiki** is your comprehensive resource for everything related to Hytale development - from creating your first mod to running production servers.
 
 ## What is Hytale?

@@ -12,6 +12,10 @@ description: Technical v2 documentation of the Hytale server - Architecture, API
   <span className="badge badge--warning">Version 2.0 - Experimental Documentation</span>
 </div>
 
+:::warning Documentation Accuracy Notice
+This documentation is based on **decompiled source code** and may contain errors or inaccuracies. While we verify against the actual code, some information may be incomplete, outdated, or incorrectly interpreted. **Always test your implementations** and don't rely solely on this documentation. Found an error? [Report it on GitHub](https://github.com/timiliris/Hytale-Docs/issues) to help improve the quality!
+:::
+
 :::info Documentation v2 - Multi-Agent Verified
 
 This documentation was generated using a multi-agent analysis system that:
