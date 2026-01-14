@@ -235,6 +235,17 @@ Manage player inventory.
 | Packet | ID | Direction | Compressed | Description |
 |--------|-----|-----------|------------|-------------|
 | `UpdatePlayerInventory` | 170 | Server -> Client | Yes | Full inventory sync |
+| `SetCreativeItem` | 171 | Client -> Server | No | Set item in creative inventory |
+| `DropCreativeItem` | 172 | Client -> Server | No | Drop creative item into world |
+| `SmartGiveCreativeItem` | 173 | Client -> Server | No | Smart give item in creative mode |
+| `DropItemStack` | 174 | Client -> Server | No | Drop items from inventory |
+| `MoveItemStack` | 175 | Client -> Server | No | Move items between slots |
+| `SmartMoveItemStack` | 176 | Client -> Server | No | Smart item movement |
+| `SetActiveSlot` | 177 | Client -> Server | No | Change active hotbar slot |
+| `SwitchHotbarBlockSet` | 178 | Client -> Server | No | Switch hotbar block set |
+| `InventoryAction` | 179 | Client -> Server | No | Generic inventory action |
+| `LoadHotbar` | 106 | Client -> Server | No | Load hotbar configuration |
+| `SaveHotbar` | 107 | Client -> Server | No | Save hotbar configuration |
 
 ### Window/UI Packets
 
@@ -1030,6 +1041,277 @@ Window packets handle UI containers like chests, crafting tables, and shops.
 +------------------+------------------+
 ```
 
+**Vector2i (8 bytes):**
+```
++------------------+------------------+
+| x (int32 LE)     | y (int32 LE)     |
++------------------+------------------+
+```
+
+### Movement and Input Structures
+
+This section documents the data structures used for player movement, physics, and input handling.
+
+#### MovementStates (22 bytes)
+
+The `MovementStates` structure encodes the player's current movement state as a set of boolean flags. Each flag occupies 1 byte (non-zero = true).
+
+```
++----------+----------------+----------+----------+----------+----------+
+| idle (1) | horizontalIdle | jumping  | flying   | walking  | running  |
++----------+----------------+----------+----------+----------+----------+
+| sprinting| crouching      | forcedCr | falling  | climbing | inFluid  |
++----------+----------------+----------+----------+----------+----------+
+| swimming | swimJumping    | onGround | mantling | sliding  | mounting |
++----------+----------------+----------+----------+----------+----------+
+| rolling  | sitting        | gliding  | sleeping |          |          |
++----------+----------------+----------+----------+----------+----------+
+```
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | idle | byte | 1 | Player is idle (not moving) |
+| 1 | horizontalIdle | byte | 1 | No horizontal movement input |
+| 2 | jumping | byte | 1 | Currently jumping |
+| 3 | flying | byte | 1 | Flying mode active |
+| 4 | walking | byte | 1 | Walking speed movement |
+| 5 | running | byte | 1 | Running speed movement |
+| 6 | sprinting | byte | 1 | Sprinting speed movement |
+| 7 | crouching | byte | 1 | Crouching/sneaking |
+| 8 | forcedCrouching | byte | 1 | Forced crouch (low ceiling) |
+| 9 | falling | byte | 1 | Falling through air |
+| 10 | climbing | byte | 1 | Climbing ladder/vines |
+| 11 | inFluid | byte | 1 | Submerged in fluid |
+| 12 | swimming | byte | 1 | Swimming in fluid |
+| 13 | swimJumping | byte | 1 | Jumping while swimming |
+| 14 | onGround | byte | 1 | Standing on solid ground |
+| 15 | mantling | byte | 1 | Climbing over ledge |
+| 16 | sliding | byte | 1 | Slide movement active |
+| 17 | mounting | byte | 1 | Mounting/dismounting entity |
+| 18 | rolling | byte | 1 | Combat roll active |
+| 19 | sitting | byte | 1 | Sitting on seat/chair |
+| 20 | gliding | byte | 1 | Gliding with wings/elytra |
+| 21 | sleeping | byte | 1 | Sleeping in bed |
+
+**Fixed Size:** 22 bytes
+**Source:** `com/hypixel/hytale/protocol/MovementStates.java`
+
+#### SavedMovementStates (1 byte)
+
+A minimal subset of movement states that persists across sessions.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | flying | byte | 1 | Flying mode state |
+
+**Fixed Size:** 1 byte
+**Source:** `com/hypixel/hytale/protocol/SavedMovementStates.java`
+
+#### MovementSettings (251 bytes)
+
+The `MovementSettings` structure contains all physics and movement parameters for a player entity. Sent via UpdateMovementSettings (ID 110) when movement properties change.
+
+**Physics Parameters:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | mass | float LE | 4 | Entity mass for physics calculations |
+| 4 | dragCoefficient | float LE | 4 | Air drag coefficient |
+| 8 | invertedGravity | byte | 1 | Gravity direction inverted |
+| 9 | velocityResistance | float LE | 4 | Velocity decay rate |
+| 141 | canFly | byte | 1 | Flying ability enabled |
+| 142 | collisionExpulsionForce | float LE | 4 | Force applied when colliding |
+
+**Jump Parameters:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 13 | jumpForce | float LE | 4 | Base jump strength |
+| 17 | swimJumpForce | float LE | 4 | Jump force while swimming |
+| 21 | jumpBufferDuration | float LE | 4 | Jump input buffer time |
+| 25 | jumpBufferMaxYVelocity | float LE | 4 | Max Y velocity for buffered jump |
+
+**Ground Movement:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 29 | acceleration | float LE | 4 | Ground acceleration rate |
+| 89 | baseSpeed | float LE | 4 | Base movement speed |
+| 117 | maxSpeedMultiplier | float LE | 4 | Maximum speed cap multiplier |
+| 121 | minSpeedMultiplier | float LE | 4 | Minimum speed floor multiplier |
+
+**Directional Speed Multipliers:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 146 | forwardWalkSpeedMultiplier | float LE | 4 | Forward walk speed |
+| 150 | backwardWalkSpeedMultiplier | float LE | 4 | Backward walk speed |
+| 154 | strafeWalkSpeedMultiplier | float LE | 4 | Strafe walk speed |
+| 158 | forwardRunSpeedMultiplier | float LE | 4 | Forward run speed |
+| 162 | backwardRunSpeedMultiplier | float LE | 4 | Backward run speed |
+| 166 | strafeRunSpeedMultiplier | float LE | 4 | Strafe run speed |
+| 170 | forwardCrouchSpeedMultiplier | float LE | 4 | Forward crouch speed |
+| 174 | backwardCrouchSpeedMultiplier | float LE | 4 | Backward crouch speed |
+| 178 | strafeCrouchSpeedMultiplier | float LE | 4 | Strafe crouch speed |
+| 182 | forwardSprintSpeedMultiplier | float LE | 4 | Forward sprint speed |
+
+**Air Control:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 33 | airDragMin | float LE | 4 | Minimum air drag |
+| 37 | airDragMax | float LE | 4 | Maximum air drag |
+| 41 | airDragMinSpeed | float LE | 4 | Speed threshold for min drag |
+| 45 | airDragMaxSpeed | float LE | 4 | Speed threshold for max drag |
+| 49 | airFrictionMin | float LE | 4 | Minimum air friction |
+| 53 | airFrictionMax | float LE | 4 | Maximum air friction |
+| 57 | airFrictionMinSpeed | float LE | 4 | Speed threshold for min friction |
+| 61 | airFrictionMaxSpeed | float LE | 4 | Speed threshold for max friction |
+| 65 | airSpeedMultiplier | float LE | 4 | Air movement speed multiplier |
+| 69 | airControlMinSpeed | float LE | 4 | Min speed for air control |
+| 73 | airControlMaxSpeed | float LE | 4 | Max speed for air control |
+| 77 | airControlMinMultiplier | float LE | 4 | Air control at min speed |
+| 81 | airControlMaxMultiplier | float LE | 4 | Air control at max speed |
+| 85 | comboAirSpeedMultiplier | float LE | 4 | Air speed during combat combo |
+
+**Climbing:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 93 | climbSpeed | float LE | 4 | Vertical climb speed |
+| 97 | climbSpeedLateral | float LE | 4 | Lateral movement while climbing |
+| 101 | climbUpSprintSpeed | float LE | 4 | Sprint climb up speed |
+| 105 | climbDownSprintSpeed | float LE | 4 | Sprint climb down speed |
+
+**Flying:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 109 | horizontalFlySpeed | float LE | 4 | Horizontal flight speed |
+| 113 | verticalFlySpeed | float LE | 4 | Vertical flight speed |
+
+**Wish Direction (Input Processing):**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 125 | wishDirectionGravityX | float LE | 4 | Input gravity X component |
+| 129 | wishDirectionGravityY | float LE | 4 | Input gravity Y component |
+| 133 | wishDirectionWeightX | float LE | 4 | Input weight X component |
+| 137 | wishDirectionWeightY | float LE | 4 | Input weight Y component |
+
+**Fall Mechanics:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 186 | variableJumpFallForce | float LE | 4 | Variable height jump fall force |
+| 190 | fallEffectDuration | float LE | 4 | Fall impact effect duration |
+| 194 | fallJumpForce | float LE | 4 | Jump force after landing |
+| 198 | fallMomentumLoss | float LE | 4 | Speed loss on landing |
+
+**Auto-Jump:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 202 | autoJumpObstacleSpeedLoss | float LE | 4 | Speed loss on auto-jump |
+| 206 | autoJumpObstacleSprintSpeedLoss | float LE | 4 | Sprint speed loss on auto-jump |
+| 210 | autoJumpObstacleEffectDuration | float LE | 4 | Auto-jump effect duration |
+| 214 | autoJumpObstacleSprintEffectDuration | float LE | 4 | Sprint auto-jump effect duration |
+| 218 | autoJumpObstacleMaxAngle | float LE | 4 | Max slope angle for auto-jump |
+| 222 | autoJumpDisableJumping | byte | 1 | Disable manual jump during auto-jump |
+
+**Slide Mechanics:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 223 | minSlideEntrySpeed | float LE | 4 | Minimum speed to start slide |
+| 227 | slideExitSpeed | float LE | 4 | Speed when exiting slide |
+
+**Roll Mechanics:**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 231 | minFallSpeedToEngageRoll | float LE | 4 | Min fall speed for roll |
+| 235 | maxFallSpeedToEngageRoll | float LE | 4 | Max fall speed for roll |
+| 239 | rollStartSpeedModifier | float LE | 4 | Speed modifier at roll start |
+| 243 | rollExitSpeedModifier | float LE | 4 | Speed modifier at roll end |
+| 247 | rollTimeToComplete | float LE | 4 | Roll animation duration |
+
+**Fixed Size:** 251 bytes
+**Source:** `com/hypixel/hytale/protocol/MovementSettings.java`
+
+#### VelocityConfig (21 bytes)
+
+Configuration for velocity resistance applied to knockback and physics forces.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | groundResistance | float LE | 4 | Velocity resistance on ground |
+| 4 | groundResistanceMax | float LE | 4 | Maximum ground resistance |
+| 8 | airResistance | float LE | 4 | Velocity resistance in air |
+| 12 | airResistanceMax | float LE | 4 | Maximum air resistance |
+| 16 | threshold | float LE | 4 | Velocity threshold |
+| 20 | style | byte | 1 | VelocityThresholdStyle enum |
+
+**VelocityThresholdStyle Values:**
+- `0` - Linear: Linear interpolation
+- `1` - Exponential: Exponential curve
+
+**Fixed Size:** 21 bytes
+**Source:** `com/hypixel/hytale/protocol/VelocityConfig.java`
+
+### Input Event Structures
+
+This section documents structures used for mouse and keyboard input handling.
+
+#### MouseButtonEvent (3 bytes)
+
+Represents a mouse button state change.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | mouseButtonType | byte | 1 | MouseButtonType enum |
+| 1 | state | byte | 1 | MouseButtonState enum |
+| 2 | clicks | byte | 1 | Click count (1 = single, 2 = double) |
+
+**MouseButtonType Values:**
+- `0` - Left: Left mouse button
+- `1` - Middle: Middle mouse button (scroll wheel)
+- `2` - Right: Right mouse button
+- `3` - X1: Mouse button 4 (back)
+- `4` - X2: Mouse button 5 (forward)
+
+**MouseButtonState Values:**
+- `0` - Pressed: Button pressed down
+- `1` - Released: Button released
+
+**Fixed Size:** 3 bytes
+**Source:** `com/hypixel/hytale/protocol/MouseButtonEvent.java`
+
+#### MouseMotionEvent (Variable)
+
+Captures mouse motion with held button states.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Presence flags |
+| 1 | relativeMotion | Vector2i | 8 | Mouse delta (pixels, optional) |
+| 9+ | mouseButtonType | VarInt + byte[] | Variable | Array of held button types |
+
+**Fixed Size:** 9 bytes (minimum)
+**Max Size:** 4,096,014 bytes
+**Source:** `com/hypixel/hytale/protocol/MouseMotionEvent.java`
+
+#### TeleportAck (1 byte)
+
+Acknowledgment structure for server-initiated teleports.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | teleportId | byte | 1 | Teleport sequence ID to acknowledge |
+
+**Fixed Size:** 1 byte
+**Source:** `com/hypixel/hytale/protocol/TeleportAck.java`
+
 ---
 
 ## Source Files Reference
@@ -1052,6 +1334,8 @@ Window packets handle UI containers like chests, crafting tables, and shops.
 | Camera Packets | `com/hypixel/hytale/protocol/packets/camera/*.java` |
 | Machinima Packets | `com/hypixel/hytale/protocol/packets/machinima/*.java` |
 | Interface Packets | `com/hypixel/hytale/protocol/packets/interface_/*.java` |
+| Movement Structures | `com/hypixel/hytale/protocol/MovementStates.java`, `MovementSettings.java` |
+| Input Structures | `com/hypixel/hytale/protocol/MouseButtonEvent.java`, `MouseMotionEvent.java` |
 
 ---
 
@@ -1595,23 +1879,26 @@ Crafting packets handle recipe management and crafting operations.
 
 Mount and NPC packets handle riding mechanics and NPC interactions.
 
-#### MountNPC (ID 192)
+#### MountNPC (ID 293)
 
-**Direction:** Client -> Server
+**Direction:** Server -> Client
 **Compressed:** No
-**Description:** Request to mount an NPC entity (rideable creature, vehicle).
+**Description:** Attaches the player to an NPC entity (rideable creature, vehicle). Sent when the player successfully mounts an entity.
 
 | Offset | Field | Type | Size | Description |
 |--------|-------|------|------|-------------|
-| 0 | networkId | int32 LE | 4 | Network ID of entity to mount |
+| 0 | anchorX | float LE | 4 | Mount anchor X offset |
+| 4 | anchorY | float LE | 4 | Mount anchor Y offset |
+| 8 | anchorZ | float LE | 4 | Mount anchor Z offset |
+| 12 | entityId | int32 LE | 4 | Entity network ID to mount |
 
-**Fixed Size:** 4 bytes
+**Fixed Size:** 16 bytes
 
-#### DismountNPC (ID 193)
+#### DismountNPC (ID 294)
 
-**Direction:** Client -> Server
+**Direction:** Server -> Client
 **Compressed:** No
-**Description:** Request to dismount from the currently mounted entity.
+**Description:** Detaches the player from the currently mounted entity. Sent when the player dismounts or is forced off a mount.
 
 | Offset | Field | Type | Size | Description |
 |--------|-------|------|------|-------------|
@@ -1619,21 +1906,73 @@ Mount and NPC packets handle riding mechanics and NPC interactions.
 
 **Fixed Size:** 0 bytes
 
-#### SyncInteractionChain (ID 290)
+#### SyncInteractionChains (ID 290)
+
+**Direction:** Bidirectional
+**Compressed:** No
+**Description:** Synchronizes multiple interaction chain states. Used for combat actions, item usage, and multi-step interactions.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | updates | VarInt + SyncInteractionChain[] | Variable | Array of interaction chain updates |
+
+**SyncInteractionChain Structure:**
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| nullBits | byte | 1 | Presence flags for optional fields |
+| activeHotbarSlot | int32 LE | 4 | Active hotbar slot index |
+| activeUtilitySlot | int32 LE | 4 | Active utility slot index |
+| activeToolsSlot | int32 LE | 4 | Active tools slot index |
+| initial | byte | 1 | Boolean: is initial chain |
+| desync | byte | 1 | Boolean: chain desynchronized |
+| overrideRootInteraction | int32 LE | 4 | Override interaction ID (-2147483648 if none) |
+| interactionType | byte | 1 | InteractionType: Primary (0), Secondary (1) |
+| equipSlot | int32 LE | 4 | Equipment slot involved |
+| chainId | int32 LE | 4 | Chain identifier |
+| state | byte | 1 | InteractionState: Finished, Running, etc. |
+| operationBaseIndex | int32 LE | 4 | Base operation index |
+| (variable fields) | ... | Variable | Item IDs, forked chain data, interaction data |
+
+**Fixed Size:** 61 bytes (minimum per SyncInteractionChain)
+**Max Size:** 1,677,721,600 bytes
+
+#### CancelInteractionChain (ID 291)
 
 **Direction:** Client -> Server
 **Compressed:** No
-**Description:** Synchronizes an interaction chain state with the server. Used for complex NPC dialogue or multi-step interactions.
+**Description:** Cancels an in-progress interaction chain. Sent when a player interrupts an action or releases an input.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = forkedId present |
+| 1 | chainId | int32 LE | 4 | Interaction chain to cancel |
+| 5 | forkedId | ForkedChainId | Variable | Optional forked chain identifier |
+
+**Fixed Size:** 5 bytes (minimum)
+**Max Size:** 1,038 bytes
+
+#### PlayInteractionFor (ID 292)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Instructs the client to play an interaction animation for a specific entity. Used for combat feedback and visual effects.
 
 | Offset | Field | Type | Size | Description |
 |--------|-------|------|------|-------------|
 | 0 | nullBits | byte | 1 | Presence flags |
-| 1 | interactionChainId | int32 LE | 4 | Interaction chain identifier |
-| 5 | stringOffset | int32 LE | 4 | Offset to string data |
-| 9+ | (Variable data) | Variable | Variable | Interaction chain data |
+| 1 | entityId | int32 LE | 4 | Target entity network ID |
+| 5 | chainId | int32 LE | 4 | Interaction chain identifier |
+| 9 | operationIndex | int32 LE | 4 | Operation index in chain |
+| 13 | interactionId | int32 LE | 4 | Specific interaction ID |
+| 17 | interactionType | byte | 1 | InteractionType enum |
+| 18 | cancel | byte | 1 | Boolean: cancel the interaction |
+| 19 | forkedIdOffset | int32 LE | 4 | Offset to forked chain ID |
+| 23 | interactedItemIdOffset | int32 LE | 4 | Offset to item ID string |
+| 27+ | (Variable data) | Variable | Variable | Forked ID and item ID data |
 
-**Fixed Size:** 9 bytes (minimum)
-**Max Size:** 16,384,013 bytes
+**Fixed Size:** 27 bytes (minimum)
+**Max Size:** 16,385,065 bytes
 
 ---
 
@@ -1955,6 +2294,172 @@ Creative mode packets handle creative inventory operations.
 - `0` - EquipOrMergeStack: Equip item or merge with existing stack
 
 **Fixed Size:** 13 bytes
+
+#### DropCreativeItem (ID 172)
+
+**Direction:** Client -> Server
+**Compressed:** No
+**Description:** Drops an item from creative mode inventory into the world. Unlike DropItemStack which references an existing inventory slot, this packet allows dropping any item directly.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | item | ItemQuantity | Variable | Item data to drop into the world |
+
+**Fixed Size:** Variable (depends on ItemQuantity)
+**Max Size:** 16,384,010 bytes
+
+#### SmartGiveCreativeItem (ID 173)
+
+**Direction:** Client -> Server
+**Compressed:** No
+**Description:** Smart item give in creative mode that automatically finds the best inventory slot for the item, either equipping it or merging with an existing stack.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | moveType | byte | 1 | SmartMoveType enum value |
+| 1 | item | ItemQuantity | Variable | Item data to give |
+
+**SmartMoveType Values:**
+- `0` - EquipOrMergeStack: Equip item or merge with existing stack
+
+**Fixed Size:** 1 byte (minimum)
+**Max Size:** 16,384,011 bytes
+
+#### SwitchHotbarBlockSet (ID 178)
+
+**Direction:** Client -> Server
+**Compressed:** No
+**Description:** Switches the current hotbar block set based on an item type. Used in creative mode to switch between different block palettes or categories for quick access.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = itemId present |
+| 1 | itemId | VarString | Variable | Item type ID to switch to (optional, max 4,096,000 chars) |
+
+**Fixed Size:** 1 byte (minimum)
+**Max Size:** 16,384,006 bytes
+
+---
+
+### Combat Packets
+
+Combat packets handle damage dealing, hit detection, knockback, projectiles, and death/respawn mechanics. These packets work together to provide responsive combat feedback.
+
+#### DamageCause Structure
+
+The `DamageCause` structure provides details about what caused damage to an entity.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = id present, bit 1 = damageTextColor present |
+| 1 | idOffset | int32 LE | 4 | Offset to damage cause ID string |
+| 5 | damageTextColorOffset | int32 LE | 4 | Offset to text color string |
+| 9+ | id | VarString | Variable | Damage cause identifier (e.g., "fall", "fire", "attack") |
+| - | damageTextColor | VarString | Variable | Hex color for damage text display |
+
+**Fixed Size:** 9 bytes (minimum)
+**Max Size:** 32,768,019 bytes
+
+---
+
+#### UpdateHitboxCollisionConfig (ID 74)
+
+**Direction:** Server -> Client
+**Compressed:** Yes (Zstd)
+**Description:** Synchronizes hitbox collision configuration data used for combat hit detection. Defines how entities collide and interact during combat.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = configs present |
+| 1 | type | byte | 1 | UpdateType enum: Init, Update, or Delta |
+| 2 | maxId | int32 LE | 4 | Maximum configuration ID |
+| 6 | hitboxCollisionConfigs | `Map<int32, HitboxCollisionConfig>` | Variable | Configuration dictionary (optional) |
+
+**HitboxCollisionConfig Structure (5 bytes):**
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| collisionType | byte | 1 | CollisionType enum value |
+| softCollisionOffsetRatio | float LE | 4 | Soft collision offset multiplier |
+
+**CollisionType Values:**
+- `0` - Hard: Solid collision, prevents overlap
+- `1` - Soft: Allows partial overlap with pushback
+- `2` - None: No collision response
+
+**Fixed Size:** 6 bytes (minimum)
+**Max Size:** 36,864,011 bytes
+
+---
+
+#### UpdateProjectileConfigs (ID 85)
+
+**Direction:** Server -> Client
+**Compressed:** Yes (Zstd)
+**Description:** Synchronizes projectile configuration data for ranged combat. Defines physics, visuals, and interaction behavior for arrows, thrown items, and magic projectiles.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = configs present, bit 1 = removedConfigs present |
+| 1 | type | byte | 1 | UpdateType enum: Init, Update, or Delta |
+| 2 | configsOffset | int32 LE | 4 | Offset to configs dictionary |
+| 6 | removedConfigsOffset | int32 LE | 4 | Offset to removed configs array |
+| 10+ | configs | `Map<String, ProjectileConfig>` | Variable | Projectile configurations (optional) |
+| - | removedConfigs | String[] | Variable | IDs of removed configs (optional) |
+
+**ProjectileConfig Structure (171+ bytes):**
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Presence flags for optional fields |
+| 1 | physicsConfig | PhysicsConfig | 122 | Physics parameters (optional) |
+| 123 | launchForce | double LE | 8 | Initial launch velocity multiplier |
+| 131 | spawnOffset | Vector3f | 12 | Spawn position offset from entity (optional) |
+| 143 | rotationOffset | Direction | 12 | Initial rotation offset (optional) |
+| 155 | launchLocalSoundEventIndex | int32 LE | 4 | Sound event for launch |
+| 159 | projectileSoundEventIndex | int32 LE | 4 | Sound event during flight |
+| 163 | modelOffset | int32 LE | 4 | Offset to model data |
+| 167 | interactionsOffset | int32 LE | 4 | Offset to interactions map |
+| 171+ | model | Model | Variable | Visual model data (optional) |
+| - | interactions | `Map<InteractionType, int32>` | Variable | Interaction handlers (optional) |
+
+**InteractionType Values:**
+- `0` - OnHitEntity: Triggered when hitting an entity
+- `1` - OnHitBlock: Triggered when hitting a block
+- `2` - OnExpire: Triggered when projectile lifetime ends
+
+**Fixed Size:** 10 bytes (minimum)
+**Max Size:** 1,677,721,600 bytes
+
+---
+
+### Hotbar Management Packets
+
+Hotbar management packets handle saving and loading of hotbar configurations for quick access presets.
+
+#### LoadHotbar (ID 106)
+
+**Direction:** Client -> Server
+**Compressed:** No
+**Description:** Requests to load a saved hotbar configuration from a specific inventory row. Used to quickly restore a previously saved hotbar setup.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | inventoryRow | byte | 1 | Inventory row index to load hotbar from |
+
+**Fixed Size:** 1 byte
+
+#### SaveHotbar (ID 107)
+
+**Direction:** Client -> Server
+**Compressed:** No
+**Description:** Saves the current hotbar configuration to a specific inventory row for later retrieval. Allows players to store multiple hotbar setups.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | inventoryRow | byte | 1 | Inventory row index to save hotbar to |
+
+**Fixed Size:** 1 byte
 
 ---
 
@@ -2542,34 +3047,6 @@ This section documents player-related packets for stats, abilities, and state ma
 
 ---
 
-### LoadHotbar (ID 106)
-
-**Direction:** Client -> Server
-**Compressed:** No
-**Description:** Request to load a saved hotbar configuration from a specific inventory row.
-
-| Offset | Field | Type | Size | Description |
-|--------|-------|------|------|-------------|
-| 0 | inventoryRow | byte | 1 | Source inventory row index |
-
-**Fixed Size:** 1 byte
-
----
-
-### SaveHotbar (ID 107)
-
-**Direction:** Client -> Server
-**Compressed:** No
-**Description:** Request to save the current hotbar to a specific inventory row.
-
-| Offset | Field | Type | Size | Description |
-|--------|-------|------|------|-------------|
-| 0 | inventoryRow | byte | 1 | Target inventory row index |
-
-**Fixed Size:** 1 byte
-
----
-
 ### UpdateMovementSettings (ID 110)
 
 **Direction:** Server -> Client
@@ -2800,3 +3277,297 @@ This section documents packets used during the connection setup and initializati
 
 **Fixed Size:** 1 byte (minimum)
 **Max Size:** 327,680,184 bytes
+
+---
+
+## Additional UI/Interface Packets
+
+This section documents additional UI and interface packets for HUD management, page navigation, player lists, and system notifications.
+
+### SetPage (ID 216)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Sets the active UI page/screen on the client. Used to open inventory, map, crafting interfaces, and other full-screen UI pages.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | page | byte | 1 | Page enum value |
+| 1 | canCloseThroughInteraction | byte | 1 | Boolean: player can close via ESC or clicking away |
+
+**Page Values:**
+- `0` - None: Close any open page
+- `1` - Bench: Workbench/crafting interface
+- `2` - Inventory: Player inventory screen
+- `3` - ToolsSettings: Tools configuration menu
+- `4` - Map: World map view
+- `5` - MachinimaEditor: Cinematic editor interface
+- `6` - ContentCreation: Content creation tools
+- `7` - Custom: Server-defined custom page
+
+**Fixed Size:** 2 bytes
+
+---
+
+### ServerInfo (ID 223)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Sends server information to the client including server name, message of the day, and player capacity. Used for server browser and connection UI.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = serverName present, bit 1 = motd present |
+| 1 | maxPlayers | int32 LE | 4 | Maximum player capacity |
+| 5 | serverNameOffset | int32 LE | 4 | Offset to server name string |
+| 9 | motdOffset | int32 LE | 4 | Offset to MOTD string |
+| 13+ | serverName | VarString | Variable | Server display name (optional) |
+| - | motd | VarString | Variable | Message of the day (optional) |
+
+**Fixed Size:** 13 bytes (minimum)
+**Max Size:** 32,768,023 bytes
+
+---
+
+### AddToServerPlayerList (ID 224)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Adds one or more players to the player list display. Used when players join the server or become visible.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = players array present |
+| 1 | players | VarInt + ServerPlayerListPlayer[] | Variable | Array of player entries to add |
+
+**ServerPlayerListPlayer Structure (37+ bytes):**
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| nullBits | byte | 1 | Bit 0 = username present, bit 1 = worldUuid present |
+| uuid | UUID | 16 | Player's unique identifier |
+| worldUuid | UUID | 16 | World the player is in (optional) |
+| ping | int32 LE | 4 | Player's latency in milliseconds |
+| username | VarString | Variable | Player's display name (optional) |
+
+**Fixed Size:** 1 byte (minimum)
+**Max Size:** 1,677,721,600 bytes
+
+---
+
+### RemoveFromServerPlayerList (ID 225)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Removes one or more players from the player list display. Used when players disconnect or become hidden.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = players array present |
+| 1 | players | VarInt + UUID[] | Variable | Array of player UUIDs to remove |
+
+**Fixed Size:** 1 byte (minimum)
+**Max Size:** 65,536,006 bytes
+
+---
+
+### UpdateServerPlayerListPing (ID 227)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Updates the ping/latency values for players in the player list. Sent periodically to keep ping displays current.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = players map present |
+| 1 | players | `VarInt + Map<UUID, int32>` | Variable | Dictionary of player UUID to ping value |
+
+**Map Entry (20 bytes each):**
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| key | UUID | 16 | Player UUID |
+| value | int32 LE | 4 | Ping in milliseconds |
+
+**Fixed Size:** 1 byte (minimum)
+**Max Size:** 81,920,006 bytes
+
+---
+
+### UpdateVisibleHudComponents (ID 230)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Controls which HUD components are visible to the player. Used for custom game modes, cutscenes, and UI customization.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = visibleComponents present |
+| 1 | visibleComponents | VarInt + HudComponent[] | Variable | Array of visible HUD components |
+
+**HudComponent Values:**
+- `0` - Hotbar: Item hotbar at bottom of screen
+- `1` - StatusIcons: Status effect icons
+- `2` - Reticle: Crosshair/aiming reticle
+- `3` - Chat: Chat message display
+- `4` - Requests: Pending request notifications
+- `5` - Notifications: Popup notifications
+- `6` - KillFeed: Combat kill feed
+- `7` - InputBindings: Control hints
+- `8` - PlayerList: Tab player list
+- `9` - EventTitle: Event title overlay
+- `10` - Compass: Navigation compass
+- `11` - ObjectivePanel: Quest/objective tracker
+- `12` - PortalPanel: Portal status display
+- `13` - BuilderToolsLegend: Builder mode controls
+- `14` - Speedometer: Speed indicator
+- `15` - UtilitySlotSelector: Utility item selector
+- `16` - BlockVariantSelector: Block variant picker
+- `17` - BuilderToolsMaterialSlotSelector: Material slot selector
+- `18` - Stamina: Stamina bar
+- `19` - AmmoIndicator: Ammunition counter
+- `20` - Health: Health bar
+- `21` - Mana: Mana bar
+- `22` - Oxygen: Oxygen/breath bar
+- `23` - Sleep: Sleep progress indicator
+
+**Fixed Size:** 1 byte (minimum)
+**Max Size:** 4,096,006 bytes
+
+---
+
+### ResetUserInterfaceState (ID 231)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Resets the client's UI state to defaults. Used when joining a world, changing game modes, or recovering from UI errors.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| (no fields) | - | 0 | Empty packet |
+
+**Fixed Size:** 0 bytes
+
+---
+
+### WorldSavingStatus (ID 233)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Notifies the client that the world is being saved. Used to display a saving indicator and potentially prevent disconnection during save operations.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | isWorldSaving | byte | 1 | Boolean: world save in progress |
+
+**Fixed Size:** 1 byte
+
+---
+
+### OpenChatWithCommand (ID 234)
+
+**Direction:** Server -> Client
+**Compressed:** No
+**Description:** Opens the chat input with a pre-filled command. Used for command suggestions, NPC interactions that trigger commands, and quick-action buttons.
+
+| Offset | Field | Type | Size | Description |
+|--------|-------|------|------|-------------|
+| 0 | nullBits | byte | 1 | Bit 0 = command present |
+| 1 | command | VarString | Variable | Pre-filled command text (optional) |
+
+**Fixed Size:** 1 byte (minimum)
+**Max Size:** 16,384,006 bytes
+
+---
+
+## Extended Window Action Types
+
+This section documents additional window action types used with the SendWindowAction packet (ID 203).
+
+### SelectSlotAction
+
+**Description:** Selects a specific slot in a window interface. Used for crafting table slot selection, recipe selection, and UI navigation.
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| slot | int32 LE | 4 | Index of the slot to select |
+
+**Fixed Size:** 4 bytes
+
+---
+
+### SortItemsAction
+
+**Description:** Sorts items in an inventory window by the specified criteria.
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| sortType | byte | 1 | SortType enum value |
+
+**SortType Values:**
+- `0` - Name: Sort alphabetically by item name
+- `1` - Type: Sort by item category/type
+- `2` - Quality: Sort by item quality/rarity
+
+**Fixed Size:** 1 byte
+
+---
+
+### SetActiveAction
+
+**Description:** Sets the active/enabled state of a window element. Used for toggle switches and activation controls.
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| state | byte | 1 | Boolean: element active state |
+
+**Fixed Size:** 1 byte
+
+---
+
+### UpdateCategoryAction
+
+**Description:** Updates the selected category in a categorized window like the creative inventory or recipe browser.
+
+| Field | Type | Size | Description |
+|-------|------|------|-------------|
+| categoryOffset | int32 LE | 4 | Offset to category string |
+| itemCategoryOffset | int32 LE | 4 | Offset to item category string |
+| category | VarString | Variable | Main category identifier |
+| itemCategory | VarString | Variable | Sub-category identifier |
+
+**Fixed Size:** 8 bytes (minimum)
+**Max Size:** 32,768,018 bytes
+
+---
+
+## CustomPageEvent Extended Documentation
+
+The CustomPageEvent packet (ID 219) supports bidirectional communication for server-defined UI pages.
+
+### CustomPageEventType Values
+
+| Value | Name | Description |
+|-------|------|-------------|
+| `0` | Acknowledge | Confirms receipt of CustomPage packet |
+| `1` | Data | Sends user input data back to server |
+| `2` | Dismiss | User closed the custom page |
+
+### Usage Flow
+
+```
+Server                                  Client
+   |                                       |
+   |  ------ CustomPage (ID 218) --------> |  Open custom UI page
+   |                                       |
+   |  <---- CustomPageEvent (Ack) -------- |  Page loaded confirmation
+   |                                       |
+   |           (User interacts)            |
+   |                                       |
+   |  <---- CustomPageEvent (Data) ------- |  Send form/button data
+   |                                       |
+   |  ------ CustomPage (update) --------> |  Update page content
+   |                                       |
+   |  <---- CustomPageEvent (Dismiss) ---- |  User closed page
+   |                                       |
+```

@@ -235,6 +235,17 @@ Gèrent l'inventaire du joueur.
 | Paquet | ID | Direction | Compressé | Description |
 |--------|-----|-----------|-----------|-------------|
 | `UpdatePlayerInventory` | 170 | Serveur -> Client | Oui | Synchronisation complète de l'inventaire |
+| `SetCreativeItem` | 171 | Client -> Serveur | Non | Définir un objet en inventaire créatif |
+| `DropCreativeItem` | 172 | Client -> Serveur | Non | Lâcher un objet créatif dans le monde |
+| `SmartGiveCreativeItem` | 173 | Client -> Serveur | Non | Don intelligent d'objet en mode créatif |
+| `DropItemStack` | 174 | Client -> Serveur | Non | Lâcher des objets de l'inventaire |
+| `MoveItemStack` | 175 | Client -> Serveur | Non | Déplacer des objets entre emplacements |
+| `SmartMoveItemStack` | 176 | Client -> Serveur | Non | Déplacement intelligent d'objets |
+| `SetActiveSlot` | 177 | Client -> Serveur | Non | Changer l'emplacement actif de la barre d'accès rapide |
+| `SwitchHotbarBlockSet` | 178 | Client -> Serveur | Non | Changer le jeu de blocs de la barre d'accès rapide |
+| `InventoryAction` | 179 | Client -> Serveur | Non | Action d'inventaire générique |
+| `LoadHotbar` | 106 | Client -> Serveur | Non | Charger la configuration de barre d'accès rapide |
+| `SaveHotbar` | 107 | Client -> Serveur | Non | Sauvegarder la configuration de barre d'accès rapide |
 
 ### Paquets de Fenêtre/Interface
 
@@ -999,6 +1010,277 @@ Les paquets de fenetre gerent les conteneurs d'interface comme les coffres, les 
 +------------------+------------------+
 ```
 
+**Vector2i (8 octets) :**
+```
++------------------+------------------+
+| x (int32 LE)     | y (int32 LE)     |
++------------------+------------------+
+```
+
+### Structures de Deplacement et d'Entree
+
+Cette section documente les structures de donnees utilisees pour le deplacement du joueur, la physique et la gestion des entrees.
+
+#### MovementStates (22 octets)
+
+La structure `MovementStates` encode l'etat de deplacement actuel du joueur sous forme d'indicateurs booleens. Chaque indicateur occupe 1 octet (non-zero = vrai).
+
+```
++----------+----------------+----------+----------+----------+----------+
+| idle (1) | horizontalIdle | jumping  | flying   | walking  | running  |
++----------+----------------+----------+----------+----------+----------+
+| sprinting| crouching      | forcedCr | falling  | climbing | inFluid  |
++----------+----------------+----------+----------+----------+----------+
+| swimming | swimJumping    | onGround | mantling | sliding  | mounting |
++----------+----------------+----------+----------+----------+----------+
+| rolling  | sitting        | gliding  | sleeping |          |          |
++----------+----------------+----------+----------+----------+----------+
+```
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | idle | octet | 1 | Joueur immobile (pas de mouvement) |
+| 1 | horizontalIdle | octet | 1 | Aucune entree de mouvement horizontal |
+| 2 | jumping | octet | 1 | En train de sauter |
+| 3 | flying | octet | 1 | Mode vol actif |
+| 4 | walking | octet | 1 | Mouvement a vitesse de marche |
+| 5 | running | octet | 1 | Mouvement a vitesse de course |
+| 6 | sprinting | octet | 1 | Mouvement a vitesse de sprint |
+| 7 | crouching | octet | 1 | Accroupi/furtif |
+| 8 | forcedCrouching | octet | 1 | Accroupissement force (plafond bas) |
+| 9 | falling | octet | 1 | En chute dans l'air |
+| 10 | climbing | octet | 1 | En train de grimper (echelle/lianes) |
+| 11 | inFluid | octet | 1 | Submerge dans un fluide |
+| 12 | swimming | octet | 1 | En train de nager |
+| 13 | swimJumping | octet | 1 | Saut en nageant |
+| 14 | onGround | octet | 1 | Debout sur un sol solide |
+| 15 | mantling | octet | 1 | En train d'escalader un rebord |
+| 16 | sliding | octet | 1 | Glissade active |
+| 17 | mounting | octet | 1 | Montee/descente d'une entite |
+| 18 | rolling | octet | 1 | Roulade de combat active |
+| 19 | sitting | octet | 1 | Assis sur un siege/chaise |
+| 20 | gliding | octet | 1 | Vol plane avec ailes/elytra |
+| 21 | sleeping | octet | 1 | Endormi dans un lit |
+
+**Taille fixe :** 22 octets
+**Source :** `com/hypixel/hytale/protocol/MovementStates.java`
+
+#### SavedMovementStates (1 octet)
+
+Un sous-ensemble minimal des etats de mouvement qui persiste entre les sessions.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | flying | octet | 1 | Etat du mode vol |
+
+**Taille fixe :** 1 octet
+**Source :** `com/hypixel/hytale/protocol/SavedMovementStates.java`
+
+#### MovementSettings (251 octets)
+
+La structure `MovementSettings` contient tous les parametres de physique et de mouvement pour une entite joueur. Envoyee via UpdateMovementSettings (ID 110) lorsque les proprietes de mouvement changent.
+
+**Parametres Physiques :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | mass | float LE | 4 | Masse de l'entite pour les calculs physiques |
+| 4 | dragCoefficient | float LE | 4 | Coefficient de trainee aerodynamique |
+| 8 | invertedGravity | octet | 1 | Direction de gravite inversee |
+| 9 | velocityResistance | float LE | 4 | Taux de decroissance de la velocite |
+| 141 | canFly | octet | 1 | Capacite de vol activee |
+| 142 | collisionExpulsionForce | float LE | 4 | Force appliquee lors d'une collision |
+
+**Parametres de Saut :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 13 | jumpForce | float LE | 4 | Force de saut de base |
+| 17 | swimJumpForce | float LE | 4 | Force de saut en nageant |
+| 21 | jumpBufferDuration | float LE | 4 | Duree du tampon d'entree de saut |
+| 25 | jumpBufferMaxYVelocity | float LE | 4 | Velocite Y max pour saut tamponne |
+
+**Deplacement au Sol :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 29 | acceleration | float LE | 4 | Taux d'acceleration au sol |
+| 89 | baseSpeed | float LE | 4 | Vitesse de deplacement de base |
+| 117 | maxSpeedMultiplier | float LE | 4 | Multiplicateur de vitesse maximale |
+| 121 | minSpeedMultiplier | float LE | 4 | Multiplicateur de vitesse minimale |
+
+**Multiplicateurs de Vitesse Directionnels :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 146 | forwardWalkSpeedMultiplier | float LE | 4 | Vitesse de marche avant |
+| 150 | backwardWalkSpeedMultiplier | float LE | 4 | Vitesse de marche arriere |
+| 154 | strafeWalkSpeedMultiplier | float LE | 4 | Vitesse de marche laterale |
+| 158 | forwardRunSpeedMultiplier | float LE | 4 | Vitesse de course avant |
+| 162 | backwardRunSpeedMultiplier | float LE | 4 | Vitesse de course arriere |
+| 166 | strafeRunSpeedMultiplier | float LE | 4 | Vitesse de course laterale |
+| 170 | forwardCrouchSpeedMultiplier | float LE | 4 | Vitesse accroupi avant |
+| 174 | backwardCrouchSpeedMultiplier | float LE | 4 | Vitesse accroupi arriere |
+| 178 | strafeCrouchSpeedMultiplier | float LE | 4 | Vitesse accroupi laterale |
+| 182 | forwardSprintSpeedMultiplier | float LE | 4 | Vitesse de sprint avant |
+
+**Controle Aerien :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 33 | airDragMin | float LE | 4 | Trainee aerienne minimale |
+| 37 | airDragMax | float LE | 4 | Trainee aerienne maximale |
+| 41 | airDragMinSpeed | float LE | 4 | Seuil de vitesse pour trainee min |
+| 45 | airDragMaxSpeed | float LE | 4 | Seuil de vitesse pour trainee max |
+| 49 | airFrictionMin | float LE | 4 | Friction aerienne minimale |
+| 53 | airFrictionMax | float LE | 4 | Friction aerienne maximale |
+| 57 | airFrictionMinSpeed | float LE | 4 | Seuil de vitesse pour friction min |
+| 61 | airFrictionMaxSpeed | float LE | 4 | Seuil de vitesse pour friction max |
+| 65 | airSpeedMultiplier | float LE | 4 | Multiplicateur de vitesse aerienne |
+| 69 | airControlMinSpeed | float LE | 4 | Vitesse min pour controle aerien |
+| 73 | airControlMaxSpeed | float LE | 4 | Vitesse max pour controle aerien |
+| 77 | airControlMinMultiplier | float LE | 4 | Controle aerien a vitesse min |
+| 81 | airControlMaxMultiplier | float LE | 4 | Controle aerien a vitesse max |
+| 85 | comboAirSpeedMultiplier | float LE | 4 | Vitesse aerienne pendant combo |
+
+**Escalade :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 93 | climbSpeed | float LE | 4 | Vitesse d'escalade verticale |
+| 97 | climbSpeedLateral | float LE | 4 | Mouvement lateral en escalade |
+| 101 | climbUpSprintSpeed | float LE | 4 | Vitesse sprint montee |
+| 105 | climbDownSprintSpeed | float LE | 4 | Vitesse sprint descente |
+
+**Vol :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 109 | horizontalFlySpeed | float LE | 4 | Vitesse de vol horizontale |
+| 113 | verticalFlySpeed | float LE | 4 | Vitesse de vol verticale |
+
+**Direction Souhaitee (Traitement d'Entree) :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 125 | wishDirectionGravityX | float LE | 4 | Composante X de gravite d'entree |
+| 129 | wishDirectionGravityY | float LE | 4 | Composante Y de gravite d'entree |
+| 133 | wishDirectionWeightX | float LE | 4 | Composante X de poids d'entree |
+| 137 | wishDirectionWeightY | float LE | 4 | Composante Y de poids d'entree |
+
+**Mecaniques de Chute :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 186 | variableJumpFallForce | float LE | 4 | Force de chute saut variable |
+| 190 | fallEffectDuration | float LE | 4 | Duree de l'effet d'impact |
+| 194 | fallJumpForce | float LE | 4 | Force de saut apres atterrissage |
+| 198 | fallMomentumLoss | float LE | 4 | Perte de vitesse a l'atterrissage |
+
+**Saut Automatique :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 202 | autoJumpObstacleSpeedLoss | float LE | 4 | Perte de vitesse au saut auto |
+| 206 | autoJumpObstacleSprintSpeedLoss | float LE | 4 | Perte vitesse sprint au saut auto |
+| 210 | autoJumpObstacleEffectDuration | float LE | 4 | Duree effet saut auto |
+| 214 | autoJumpObstacleSprintEffectDuration | float LE | 4 | Duree effet sprint saut auto |
+| 218 | autoJumpObstacleMaxAngle | float LE | 4 | Angle max de pente pour saut auto |
+| 222 | autoJumpDisableJumping | octet | 1 | Desactiver saut manuel pendant saut auto |
+
+**Mecaniques de Glissade :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 223 | minSlideEntrySpeed | float LE | 4 | Vitesse minimale pour glissade |
+| 227 | slideExitSpeed | float LE | 4 | Vitesse en sortie de glissade |
+
+**Mecaniques de Roulade :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 231 | minFallSpeedToEngageRoll | float LE | 4 | Vitesse min de chute pour roulade |
+| 235 | maxFallSpeedToEngageRoll | float LE | 4 | Vitesse max de chute pour roulade |
+| 239 | rollStartSpeedModifier | float LE | 4 | Modificateur vitesse debut roulade |
+| 243 | rollExitSpeedModifier | float LE | 4 | Modificateur vitesse fin roulade |
+| 247 | rollTimeToComplete | float LE | 4 | Duree animation roulade |
+
+**Taille fixe :** 251 octets
+**Source :** `com/hypixel/hytale/protocol/MovementSettings.java`
+
+#### VelocityConfig (21 octets)
+
+Configuration de la resistance a la velocite appliquee aux reculs et forces physiques.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | groundResistance | float LE | 4 | Resistance a la velocite au sol |
+| 4 | groundResistanceMax | float LE | 4 | Resistance maximale au sol |
+| 8 | airResistance | float LE | 4 | Resistance a la velocite en l'air |
+| 12 | airResistanceMax | float LE | 4 | Resistance maximale en l'air |
+| 16 | threshold | float LE | 4 | Seuil de velocite |
+| 20 | style | octet | 1 | Enum VelocityThresholdStyle |
+
+**Valeurs VelocityThresholdStyle :**
+- `0` - Linear : Interpolation lineaire
+- `1` - Exponential : Courbe exponentielle
+
+**Taille fixe :** 21 octets
+**Source :** `com/hypixel/hytale/protocol/VelocityConfig.java`
+
+### Structures d'Evenements d'Entree
+
+Cette section documente les structures utilisees pour la gestion des entrees souris et clavier.
+
+#### MouseButtonEvent (3 octets)
+
+Represente un changement d'etat d'un bouton de souris.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | mouseButtonType | octet | 1 | Enum MouseButtonType |
+| 1 | state | octet | 1 | Enum MouseButtonState |
+| 2 | clicks | octet | 1 | Nombre de clics (1 = simple, 2 = double) |
+
+**Valeurs MouseButtonType :**
+- `0` - Left : Bouton gauche de la souris
+- `1` - Middle : Bouton du milieu (molette)
+- `2` - Right : Bouton droit de la souris
+- `3` - X1 : Bouton souris 4 (retour)
+- `4` - X2 : Bouton souris 5 (avant)
+
+**Valeurs MouseButtonState :**
+- `0` - Pressed : Bouton enfonce
+- `1` - Released : Bouton relache
+
+**Taille fixe :** 3 octets
+**Source :** `com/hypixel/hytale/protocol/MouseButtonEvent.java`
+
+#### MouseMotionEvent (Variable)
+
+Capture le mouvement de la souris avec les etats des boutons enfonces.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Indicateurs de presence |
+| 1 | relativeMotion | Vector2i | 8 | Delta souris (pixels, optionnel) |
+| 9+ | mouseButtonType | VarInt + byte[] | Variable | Tableau des types de boutons enfonces |
+
+**Taille fixe :** 9 octets (minimum)
+**Taille maximale :** 4 096 014 octets
+**Source :** `com/hypixel/hytale/protocol/MouseMotionEvent.java`
+
+#### TeleportAck (1 octet)
+
+Structure d'acquittement pour les teleportations initiees par le serveur.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | teleportId | octet | 1 | ID de sequence de teleportation a acquitter |
+
+**Taille fixe :** 1 octet
+**Source :** `com/hypixel/hytale/protocol/TeleportAck.java`
+
 ---
 
 ## Reference des Fichiers Sources
@@ -1021,6 +1303,8 @@ Les paquets de fenetre gerent les conteneurs d'interface comme les coffres, les 
 | Paquets Camera | `com/hypixel/hytale/protocol/packets/camera/*.java` |
 | Paquets Machinima | `com/hypixel/hytale/protocol/packets/machinima/*.java` |
 | Paquets Interface | `com/hypixel/hytale/protocol/packets/interface_/*.java` |
+| Structures de Mouvement | `com/hypixel/hytale/protocol/MovementStates.java`, `MovementSettings.java` |
+| Structures d'Entree | `com/hypixel/hytale/protocol/MouseButtonEvent.java`, `MouseMotionEvent.java` |
 
 ---
 
@@ -1564,23 +1848,26 @@ Les paquets de craft gerent la gestion des recettes et les operations de fabrica
 
 Les paquets de monture et PNJ gerent les mecaniques de chevauchement et les interactions avec les PNJ.
 
-#### MountNPC (ID 192)
+#### MountNPC (ID 293)
 
-**Direction :** Client -> Serveur
+**Direction :** Serveur -> Client
 **Compresse :** Non
-**Description :** Demande de monter une entite PNJ (creature chevauchable, vehicule).
+**Description :** Attache le joueur a une entite PNJ (creature chevauchable, vehicule). Envoye lorsque le joueur monte avec succes une entite.
 
 | Offset | Champ | Type | Taille | Description |
 |--------|-------|------|--------|-------------|
-| 0 | networkId | int32 LE | 4 | ID reseau de l'entite a monter |
+| 0 | anchorX | float LE | 4 | Offset X du point d'ancrage de la monture |
+| 4 | anchorY | float LE | 4 | Offset Y du point d'ancrage de la monture |
+| 8 | anchorZ | float LE | 4 | Offset Z du point d'ancrage de la monture |
+| 12 | entityId | int32 LE | 4 | ID reseau de l'entite a monter |
 
-**Taille fixe :** 4 octets
+**Taille fixe :** 16 octets
 
-#### DismountNPC (ID 193)
+#### DismountNPC (ID 294)
 
-**Direction :** Client -> Serveur
+**Direction :** Serveur -> Client
 **Compresse :** Non
-**Description :** Demande de descendre de l'entite actuellement montee.
+**Description :** Detache le joueur de l'entite actuellement montee. Envoye lorsque le joueur descend ou est force de descendre.
 
 | Offset | Champ | Type | Taille | Description |
 |--------|-------|------|--------|-------------|
@@ -1588,21 +1875,73 @@ Les paquets de monture et PNJ gerent les mecaniques de chevauchement et les inte
 
 **Taille fixe :** 0 octets
 
-#### SyncInteractionChain (ID 290)
+#### SyncInteractionChains (ID 290)
+
+**Direction :** Bidirectionnel
+**Compresse :** Non
+**Description :** Synchronise plusieurs etats de chaines d'interaction. Utilise pour les actions de combat, l'utilisation d'objets et les interactions en plusieurs etapes.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | updates | VarInt + SyncInteractionChain[] | Variable | Tableau de mises a jour de chaines d'interaction |
+
+**Structure SyncInteractionChain :**
+
+| Champ | Type | Taille | Description |
+|-------|------|--------|-------------|
+| nullBits | octet | 1 | Indicateurs de presence pour les champs optionnels |
+| activeHotbarSlot | int32 LE | 4 | Index de l'emplacement de barre d'acces rapide actif |
+| activeUtilitySlot | int32 LE | 4 | Index de l'emplacement utilitaire actif |
+| activeToolsSlot | int32 LE | 4 | Index de l'emplacement d'outils actif |
+| initial | octet | 1 | Booleen : est une chaine initiale |
+| desync | octet | 1 | Booleen : chaine desynchronisee |
+| overrideRootInteraction | int32 LE | 4 | ID d'interaction de remplacement (-2147483648 si aucun) |
+| interactionType | octet | 1 | InteractionType : Primary (0), Secondary (1) |
+| equipSlot | int32 LE | 4 | Emplacement d'equipement implique |
+| chainId | int32 LE | 4 | Identifiant de la chaine |
+| state | octet | 1 | InteractionState : Finished, Running, etc. |
+| operationBaseIndex | int32 LE | 4 | Index de base de l'operation |
+| (champs variables) | ... | Variable | IDs d'objets, donnees de chaine derivee, donnees d'interaction |
+
+**Taille fixe :** 61 octets (minimum par SyncInteractionChain)
+**Taille maximale :** 1 677 721 600 octets
+
+#### CancelInteractionChain (ID 291)
 
 **Direction :** Client -> Serveur
 **Compresse :** Non
-**Description :** Synchronise l'etat d'une chaine d'interaction avec le serveur. Utilise pour les dialogues PNJ complexes ou les interactions en plusieurs etapes.
+**Description :** Annule une chaine d'interaction en cours. Envoye lorsqu'un joueur interrompt une action ou relache une entree.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = forkedId present |
+| 1 | chainId | int32 LE | 4 | Chaine d'interaction a annuler |
+| 5 | forkedId | ForkedChainId | Variable | Identifiant de chaine derivee optionnel |
+
+**Taille fixe :** 5 octets (minimum)
+**Taille maximale :** 1 038 octets
+
+#### PlayInteractionFor (ID 292)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Indique au client de jouer une animation d'interaction pour une entite specifique. Utilise pour le retour de combat et les effets visuels.
 
 | Offset | Champ | Type | Taille | Description |
 |--------|-------|------|--------|-------------|
 | 0 | nullBits | octet | 1 | Indicateurs de presence |
-| 1 | interactionChainId | int32 LE | 4 | Identifiant de la chaine d'interaction |
-| 5 | stringOffset | int32 LE | 4 | Offset vers les donnees de chaine |
-| 9+ | (Donnees variables) | Variable | Variable | Donnees de la chaine d'interaction |
+| 1 | entityId | int32 LE | 4 | ID reseau de l'entite cible |
+| 5 | chainId | int32 LE | 4 | Identifiant de la chaine d'interaction |
+| 9 | operationIndex | int32 LE | 4 | Index de l'operation dans la chaine |
+| 13 | interactionId | int32 LE | 4 | ID d'interaction specifique |
+| 17 | interactionType | octet | 1 | Enum InteractionType |
+| 18 | cancel | octet | 1 | Booleen : annuler l'interaction |
+| 19 | forkedIdOffset | int32 LE | 4 | Offset vers l'ID de chaine derivee |
+| 23 | interactedItemIdOffset | int32 LE | 4 | Offset vers la chaine d'ID d'objet |
+| 27+ | (Donnees variables) | Variable | Variable | Donnees d'ID derive et d'ID d'objet |
 
-**Taille fixe :** 9 octets (minimum)
-**Taille maximale :** 16 384 013 octets
+**Taille fixe :** 27 octets (minimum)
+**Taille maximale :** 16 385 065 octets
 
 ---
 
@@ -1924,6 +2263,172 @@ Les paquets du mode creatif gerent les operations d'inventaire en mode creatif.
 - `0` - EquipOrMergeStack : Equiper l'objet ou fusionner avec une pile existante
 
 **Taille fixe :** 13 octets
+
+#### DropCreativeItem (ID 172)
+
+**Direction :** Client -> Serveur
+**Compresse :** Non
+**Description :** Lache un objet de l'inventaire du mode creatif dans le monde. Contrairement a DropItemStack qui reference un emplacement d'inventaire existant, ce paquet permet de lacher n'importe quel objet directement.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | item | ItemQuantity | Variable | Donnees de l'objet a lacher dans le monde |
+
+**Taille fixe :** Variable (depend de ItemQuantity)
+**Taille maximale :** 16 384 010 octets
+
+#### SmartGiveCreativeItem (ID 173)
+
+**Direction :** Client -> Serveur
+**Compresse :** Non
+**Description :** Don intelligent d'objet en mode creatif qui trouve automatiquement le meilleur emplacement d'inventaire pour l'objet, soit en l'equipant, soit en le fusionnant avec une pile existante.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | moveType | octet | 1 | Valeur enum SmartMoveType |
+| 1 | item | ItemQuantity | Variable | Donnees de l'objet a donner |
+
+**Valeurs SmartMoveType :**
+- `0` - EquipOrMergeStack : Equiper l'objet ou fusionner avec une pile existante
+
+**Taille fixe :** 1 octet (minimum)
+**Taille maximale :** 16 384 011 octets
+
+#### SwitchHotbarBlockSet (ID 178)
+
+**Direction :** Client -> Serveur
+**Compresse :** Non
+**Description :** Change le jeu de blocs de la barre d'acces rapide en fonction d'un type d'objet. Utilise en mode creatif pour basculer entre differentes palettes ou categories de blocs pour un acces rapide.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = itemId present |
+| 1 | itemId | VarString | Variable | ID du type d'objet vers lequel basculer (optionnel, max 4 096 000 caracteres) |
+
+**Taille fixe :** 1 octet (minimum)
+**Taille maximale :** 16 384 006 octets
+
+---
+
+### Paquets de Combat
+
+Les paquets de combat gerent l'application des degats, la detection des coups, le recul, les projectiles et les mecaniques de mort/reapparition. Ces paquets fonctionnent ensemble pour fournir un retour de combat reactif.
+
+#### Structure DamageCause
+
+La structure `DamageCause` fournit des details sur ce qui a cause des degats a une entite.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = id present, bit 1 = damageTextColor present |
+| 1 | idOffset | int32 LE | 4 | Offset vers la chaine d'ID de cause de degats |
+| 5 | damageTextColorOffset | int32 LE | 4 | Offset vers la chaine de couleur de texte |
+| 9+ | id | VarString | Variable | Identifiant de la cause de degats (ex: "fall", "fire", "attack") |
+| - | damageTextColor | VarString | Variable | Couleur hexadecimale pour l'affichage du texte de degats |
+
+**Taille fixe :** 9 octets (minimum)
+**Taille maximale :** 32 768 019 octets
+
+---
+
+#### UpdateHitboxCollisionConfig (ID 74)
+
+**Direction :** Serveur -> Client
+**Compresse :** Oui (Zstd)
+**Description :** Synchronise les donnees de configuration de collision des hitbox utilisees pour la detection des coups en combat. Definit comment les entites entrent en collision et interagissent pendant le combat.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = configs present |
+| 1 | type | octet | 1 | Enum UpdateType : Init, Update ou Delta |
+| 2 | maxId | int32 LE | 4 | ID de configuration maximum |
+| 6 | hitboxCollisionConfigs | `Map<int32, HitboxCollisionConfig>` | Variable | Dictionnaire de configuration (optionnel) |
+
+**Structure HitboxCollisionConfig (5 octets) :**
+
+| Champ | Type | Taille | Description |
+|-------|------|--------|-------------|
+| collisionType | octet | 1 | Valeur enum CollisionType |
+| softCollisionOffsetRatio | float LE | 4 | Multiplicateur d'offset de collision douce |
+
+**Valeurs CollisionType :**
+- `0` - Hard : Collision solide, empeche le chevauchement
+- `1` - Soft : Permet un chevauchement partiel avec repousse
+- `2` - None : Aucune reponse de collision
+
+**Taille fixe :** 6 octets (minimum)
+**Taille maximale :** 36 864 011 octets
+
+---
+
+#### UpdateProjectileConfigs (ID 85)
+
+**Direction :** Serveur -> Client
+**Compresse :** Oui (Zstd)
+**Description :** Synchronise les donnees de configuration des projectiles pour le combat a distance. Definit la physique, les visuels et le comportement d'interaction pour les fleches, les objets lances et les projectiles magiques.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = configs present, bit 1 = removedConfigs present |
+| 1 | type | octet | 1 | Enum UpdateType : Init, Update ou Delta |
+| 2 | configsOffset | int32 LE | 4 | Offset vers le dictionnaire de configs |
+| 6 | removedConfigsOffset | int32 LE | 4 | Offset vers le tableau de configs supprimees |
+| 10+ | configs | `Map<String, ProjectileConfig>` | Variable | Configurations de projectiles (optionnel) |
+| - | removedConfigs | String[] | Variable | IDs des configs supprimees (optionnel) |
+
+**Structure ProjectileConfig (171+ octets) :**
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Indicateurs de presence pour les champs optionnels |
+| 1 | physicsConfig | PhysicsConfig | 122 | Parametres de physique (optionnel) |
+| 123 | launchForce | double LE | 8 | Multiplicateur de velocite de lancement initiale |
+| 131 | spawnOffset | Vector3f | 12 | Offset de position d'apparition depuis l'entite (optionnel) |
+| 143 | rotationOffset | Direction | 12 | Offset de rotation initiale (optionnel) |
+| 155 | launchLocalSoundEventIndex | int32 LE | 4 | Evenement sonore de lancement |
+| 159 | projectileSoundEventIndex | int32 LE | 4 | Evenement sonore pendant le vol |
+| 163 | modelOffset | int32 LE | 4 | Offset vers les donnees du modele |
+| 167 | interactionsOffset | int32 LE | 4 | Offset vers la carte des interactions |
+| 171+ | model | Model | Variable | Donnees du modele visuel (optionnel) |
+| - | interactions | `Map<InteractionType, int32>` | Variable | Gestionnaires d'interaction (optionnel) |
+
+**Valeurs InteractionType :**
+- `0` - OnHitEntity : Declenche lors de l'impact sur une entite
+- `1` - OnHitBlock : Declenche lors de l'impact sur un bloc
+- `2` - OnExpire : Declenche quand la duree de vie du projectile expire
+
+**Taille fixe :** 10 octets (minimum)
+**Taille maximale :** 1 677 721 600 octets
+
+---
+
+### Paquets de Gestion de la Barre d'Acces Rapide
+
+Les paquets de gestion de la barre d'acces rapide gerent la sauvegarde et le chargement des configurations de barre d'acces rapide pour des preselections d'acces rapide.
+
+#### LoadHotbar (ID 106)
+
+**Direction :** Client -> Serveur
+**Compresse :** Non
+**Description :** Demande de charger une configuration de barre d'acces rapide sauvegardee depuis une rangee d'inventaire specifique. Utilise pour restaurer rapidement une configuration de barre d'acces rapide precedemment sauvegardee.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | inventoryRow | octet | 1 | Index de la rangee d'inventaire depuis laquelle charger la barre d'acces rapide |
+
+**Taille fixe :** 1 octet
+
+#### SaveHotbar (ID 107)
+
+**Direction :** Client -> Serveur
+**Compresse :** Non
+**Description :** Sauvegarde la configuration actuelle de la barre d'acces rapide dans une rangee d'inventaire specifique pour une recuperation ulterieure. Permet aux joueurs de stocker plusieurs configurations de barre d'acces rapide.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | inventoryRow | octet | 1 | Index de la rangee d'inventaire vers laquelle sauvegarder la barre d'acces rapide |
+
+**Taille fixe :** 1 octet
 
 ---
 
@@ -2511,34 +3016,6 @@ Cette section documente les paquets lies au joueur pour les statistiques, capaci
 
 ---
 
-### LoadHotbar (ID 106)
-
-**Direction :** Client -> Serveur
-**Compresse :** Non
-**Description :** Demande de charger une configuration de barre d'acces rapide sauvegardee depuis une ligne d'inventaire specifique.
-
-| Offset | Champ | Type | Taille | Description |
-|--------|-------|------|--------|-------------|
-| 0 | inventoryRow | octet | 1 | Index de la ligne d'inventaire source |
-
-**Taille fixe :** 1 octet
-
----
-
-### SaveHotbar (ID 107)
-
-**Direction :** Client -> Serveur
-**Compresse :** Non
-**Description :** Demande de sauvegarder la barre d'acces rapide actuelle vers une ligne d'inventaire specifique.
-
-| Offset | Champ | Type | Taille | Description |
-|--------|-------|------|--------|-------------|
-| 0 | inventoryRow | octet | 1 | Index de la ligne d'inventaire cible |
-
-**Taille fixe :** 1 octet
-
----
-
 ### UpdateMovementSettings (ID 110)
 
 **Direction :** Serveur -> Client
@@ -2769,3 +3246,297 @@ Cette section documente les paquets utilises pendant la phase de configuration e
 
 **Taille fixe :** 1 octet (minimum)
 **Taille maximale :** 327 680 184 octets
+
+---
+
+## Paquets UI/Interface Supplementaires
+
+Cette section documente les paquets UI et interface supplementaires pour la gestion du HUD, la navigation des pages, les listes de joueurs et les notifications systeme.
+
+### SetPage (ID 216)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Definit la page/ecran UI actif sur le client. Utilise pour ouvrir l'inventaire, la carte, les interfaces de craft et autres pages UI plein ecran.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | page | octet | 1 | Valeur enum Page |
+| 1 | canCloseThroughInteraction | octet | 1 | Booleen : le joueur peut fermer via ESC ou en cliquant ailleurs |
+
+**Valeurs Page :**
+- `0` - None : Fermer toute page ouverte
+- `1` - Bench : Interface etabli/craft
+- `2` - Inventory : Ecran d'inventaire du joueur
+- `3` - ToolsSettings : Menu de configuration des outils
+- `4` - Map : Vue de la carte du monde
+- `5` - MachinimaEditor : Interface d'editeur cinematique
+- `6` - ContentCreation : Outils de creation de contenu
+- `7` - Custom : Page personnalisee definie par le serveur
+
+**Taille fixe :** 2 octets
+
+---
+
+### ServerInfo (ID 223)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Envoie les informations du serveur au client, incluant le nom du serveur, le message du jour et la capacite de joueurs. Utilise pour le navigateur de serveurs et l'interface de connexion.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = serverName present, bit 1 = motd present |
+| 1 | maxPlayers | int32 LE | 4 | Capacite maximale de joueurs |
+| 5 | serverNameOffset | int32 LE | 4 | Offset vers la chaine nom du serveur |
+| 9 | motdOffset | int32 LE | 4 | Offset vers la chaine MOTD |
+| 13+ | serverName | VarString | Variable | Nom d'affichage du serveur (optionnel) |
+| - | motd | VarString | Variable | Message du jour (optionnel) |
+
+**Taille fixe :** 13 octets (minimum)
+**Taille maximale :** 32 768 023 octets
+
+---
+
+### AddToServerPlayerList (ID 224)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Ajoute un ou plusieurs joueurs a la liste de joueurs affichee. Utilise quand des joueurs rejoignent le serveur ou deviennent visibles.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = tableau players present |
+| 1 | players | VarInt + ServerPlayerListPlayer[] | Variable | Tableau des entrees de joueurs a ajouter |
+
+**Structure ServerPlayerListPlayer (37+ octets) :**
+
+| Champ | Type | Taille | Description |
+|-------|------|--------|-------------|
+| nullBits | octet | 1 | Bit 0 = username present, bit 1 = worldUuid present |
+| uuid | UUID | 16 | Identifiant unique du joueur |
+| worldUuid | UUID | 16 | Monde dans lequel se trouve le joueur (optionnel) |
+| ping | int32 LE | 4 | Latence du joueur en millisecondes |
+| username | VarString | Variable | Nom d'affichage du joueur (optionnel) |
+
+**Taille fixe :** 1 octet (minimum)
+**Taille maximale :** 1 677 721 600 octets
+
+---
+
+### RemoveFromServerPlayerList (ID 225)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Supprime un ou plusieurs joueurs de la liste de joueurs affichee. Utilise quand des joueurs se deconnectent ou deviennent caches.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = tableau players present |
+| 1 | players | VarInt + UUID[] | Variable | Tableau des UUID de joueurs a supprimer |
+
+**Taille fixe :** 1 octet (minimum)
+**Taille maximale :** 65 536 006 octets
+
+---
+
+### UpdateServerPlayerListPing (ID 227)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Met a jour les valeurs de ping/latence des joueurs dans la liste. Envoye periodiquement pour maintenir les affichages de ping a jour.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = carte players presente |
+| 1 | players | `VarInt + Map<UUID, int32>` | Variable | Dictionnaire UUID joueur vers valeur ping |
+
+**Entree Map (20 octets chacune) :**
+
+| Champ | Type | Taille | Description |
+|-------|------|--------|-------------|
+| cle | UUID | 16 | UUID du joueur |
+| valeur | int32 LE | 4 | Ping en millisecondes |
+
+**Taille fixe :** 1 octet (minimum)
+**Taille maximale :** 81 920 006 octets
+
+---
+
+### UpdateVisibleHudComponents (ID 230)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Controle quels composants HUD sont visibles pour le joueur. Utilise pour les modes de jeu personnalises, les cinematiques et la personnalisation de l'interface.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = visibleComponents present |
+| 1 | visibleComponents | VarInt + HudComponent[] | Variable | Tableau des composants HUD visibles |
+
+**Valeurs HudComponent :**
+- `0` - Hotbar : Barre d'objets en bas de l'ecran
+- `1` - StatusIcons : Icones d'effets de statut
+- `2` - Reticle : Reticule/viseur
+- `3` - Chat : Affichage des messages de chat
+- `4` - Requests : Notifications de requetes en attente
+- `5` - Notifications : Notifications popup
+- `6` - KillFeed : Fil des eliminations en combat
+- `7` - InputBindings : Indications de controles
+- `8` - PlayerList : Liste des joueurs (Tab)
+- `9` - EventTitle : Titre d'evenement superpose
+- `10` - Compass : Boussole de navigation
+- `11` - ObjectivePanel : Suivi de quetes/objectifs
+- `12` - PortalPanel : Affichage du statut des portails
+- `13` - BuilderToolsLegend : Controles du mode constructeur
+- `14` - Speedometer : Indicateur de vitesse
+- `15` - UtilitySlotSelector : Selecteur d'objets utilitaires
+- `16` - BlockVariantSelector : Selecteur de variantes de blocs
+- `17` - BuilderToolsMaterialSlotSelector : Selecteur d'emplacements de materiaux
+- `18` - Stamina : Barre d'endurance
+- `19` - AmmoIndicator : Compteur de munitions
+- `20` - Health : Barre de sante
+- `21` - Mana : Barre de mana
+- `22` - Oxygen : Barre d'oxygene/respiration
+- `23` - Sleep : Indicateur de progression du sommeil
+
+**Taille fixe :** 1 octet (minimum)
+**Taille maximale :** 4 096 006 octets
+
+---
+
+### ResetUserInterfaceState (ID 231)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Reinitialise l'etat de l'interface utilisateur du client aux valeurs par defaut. Utilise lors de la connexion a un monde, du changement de mode de jeu ou de la recuperation d'erreurs d'interface.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| (pas de champs) | - | 0 | Paquet vide |
+
+**Taille fixe :** 0 octets
+
+---
+
+### WorldSavingStatus (ID 233)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Notifie le client que le monde est en cours de sauvegarde. Utilise pour afficher un indicateur de sauvegarde et potentiellement empecher la deconnexion pendant les operations de sauvegarde.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | isWorldSaving | octet | 1 | Booleen : sauvegarde du monde en cours |
+
+**Taille fixe :** 1 octet
+
+---
+
+### OpenChatWithCommand (ID 234)
+
+**Direction :** Serveur -> Client
+**Compresse :** Non
+**Description :** Ouvre l'entree de chat avec une commande pre-remplie. Utilise pour les suggestions de commandes, les interactions PNJ qui declenchent des commandes et les boutons d'action rapide.
+
+| Offset | Champ | Type | Taille | Description |
+|--------|-------|------|--------|-------------|
+| 0 | nullBits | octet | 1 | Bit 0 = command present |
+| 1 | command | VarString | Variable | Texte de commande pre-rempli (optionnel) |
+
+**Taille fixe :** 1 octet (minimum)
+**Taille maximale :** 16 384 006 octets
+
+---
+
+## Types d'Actions de Fenetre Etendus
+
+Cette section documente les types d'actions de fenetre supplementaires utilises avec le paquet SendWindowAction (ID 203).
+
+### SelectSlotAction
+
+**Description :** Selectionne un emplacement specifique dans une interface de fenetre. Utilise pour la selection d'emplacements de table de craft, la selection de recettes et la navigation d'interface.
+
+| Champ | Type | Taille | Description |
+|-------|------|--------|-------------|
+| slot | int32 LE | 4 | Index de l'emplacement a selectionner |
+
+**Taille fixe :** 4 octets
+
+---
+
+### SortItemsAction
+
+**Description :** Trie les objets dans une fenetre d'inventaire selon les criteres specifies.
+
+| Champ | Type | Taille | Description |
+|-------|------|--------|-------------|
+| sortType | octet | 1 | Valeur enum SortType |
+
+**Valeurs SortType :**
+- `0` - Name : Trier alphabetiquement par nom d'objet
+- `1` - Type : Trier par categorie/type d'objet
+- `2` - Quality : Trier par qualite/rarete d'objet
+
+**Taille fixe :** 1 octet
+
+---
+
+### SetActiveAction
+
+**Description :** Definit l'etat actif/active d'un element de fenetre. Utilise pour les interrupteurs a bascule et les controles d'activation.
+
+| Champ | Type | Taille | Description |
+|-------|------|--------|-------------|
+| state | octet | 1 | Booleen : etat actif de l'element |
+
+**Taille fixe :** 1 octet
+
+---
+
+### UpdateCategoryAction
+
+**Description :** Met a jour la categorie selectionnee dans une fenetre categorisee comme l'inventaire creatif ou le navigateur de recettes.
+
+| Champ | Type | Taille | Description |
+|-------|------|--------|-------------|
+| categoryOffset | int32 LE | 4 | Offset vers la chaine categorie |
+| itemCategoryOffset | int32 LE | 4 | Offset vers la chaine categorie d'objet |
+| category | VarString | Variable | Identifiant de categorie principale |
+| itemCategory | VarString | Variable | Identifiant de sous-categorie |
+
+**Taille fixe :** 8 octets (minimum)
+**Taille maximale :** 32 768 018 octets
+
+---
+
+## Documentation Etendue CustomPageEvent
+
+Le paquet CustomPageEvent (ID 219) supporte la communication bidirectionnelle pour les pages UI definies par le serveur.
+
+### Valeurs CustomPageEventType
+
+| Valeur | Nom | Description |
+|--------|-----|-------------|
+| `0` | Acknowledge | Confirme la reception du paquet CustomPage |
+| `1` | Data | Envoie les donnees d'entree utilisateur au serveur |
+| `2` | Dismiss | L'utilisateur a ferme la page personnalisee |
+
+### Flux d'Utilisation
+
+```
+Serveur                                 Client
+   |                                       |
+   |  ------ CustomPage (ID 218) --------> |  Ouvrir page UI personnalisee
+   |                                       |
+   |  <---- CustomPageEvent (Ack) -------- |  Confirmation chargement page
+   |                                       |
+   |        (L'utilisateur interagit)      |
+   |                                       |
+   |  <---- CustomPageEvent (Data) ------- |  Envoyer donnees formulaire/bouton
+   |                                       |
+   |  ------ CustomPage (update) --------> |  Mettre a jour le contenu de la page
+   |                                       |
+   |  <---- CustomPageEvent (Dismiss) ---- |  L'utilisateur a ferme la page
+   |                                       |
+```

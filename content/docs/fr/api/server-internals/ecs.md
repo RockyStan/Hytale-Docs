@@ -5379,3 +5379,938 @@ public class PathManager {
 - Les waypoints sont des positions monde entre lesquelles le PNJ se deplace
 - Les demandes de chemin peuvent etre asynchrones pour eviter le blocage
 - Fonctionne avec les controleurs de mouvement pour le deplacement reel
+
+---
+
+## Composants du Systeme de Montures
+
+Les composants suivants font partie du systeme de montures d'Hytale, permettant aux entites de monter d'autres entites ou des blocs (comme des chaises et des wagonnets).
+
+### MountedComponent
+
+**Package:** `com.hypixel.hytale.builtin.mounts`
+
+Le `MountedComponent` est ajoute a une entite lorsqu'elle monte sur une autre entite ou un bloc. Il suit ce sur quoi l'entite est montee, le decalage d'attachement et le type de controleur.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/mounts/MountedComponent.java`
+
+```java
+public class MountedComponent implements Component<EntityStore> {
+   private Ref<EntityStore> mountedToEntity;
+   private Ref<ChunkStore> mountedToBlock;
+   private MountController controller;
+   private BlockMountType blockMountType;
+   private Vector3f attachmentOffset = new Vector3f(0.0F, 0.0F, 0.0F);
+   private long mountStartMs;
+   private boolean isNetworkOutdated = true;
+
+   public static ComponentType<EntityStore, MountedComponent> getComponentType() {
+      return MountPlugin.getInstance().getMountedComponentType();
+   }
+
+   // Constructeurs pour monture d'entite et de bloc
+   public MountedComponent(Ref<EntityStore> mountedToEntity, Vector3f attachmentOffset, MountController controller);
+   public MountedComponent(Ref<ChunkStore> mountedToBlock, Vector3f attachmentOffset, BlockMountType blockMountType);
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `mountedToEntity` | `Ref<EntityStore>` | Reference a l'entite montee (null si monture bloc) |
+| `mountedToBlock` | `Ref<ChunkStore>` | Reference au bloc sur lequel on est assis (null si monture entite) |
+| `controller` | `MountController` | Type de controle de monture (ex: `Rideable`, `BlockMount`) |
+| `blockMountType` | `BlockMountType` | Type de monture bloc (ex: `Seat`, `Bed`) |
+| `attachmentOffset` | `Vector3f` | Decalage depuis le point de montage |
+| `mountStartMs` | long | Horodatage du debut de la monture |
+
+**Comment utiliser:**
+
+```java
+// Monter une entite sur une autre entite
+MountedComponent mounted = new MountedComponent(
+    mountRef,                    // Entite a monter
+    new Vector3f(0, 1.5f, 0),   // Decalage du siege
+    MountController.Rideable
+);
+commandBuffer.addComponent(riderRef, MountedComponent.getComponentType(), mounted);
+
+// Monter sur un bloc (chaise/lit)
+MountedComponent blockMount = new MountedComponent(
+    blockRef,                    // Reference du bloc
+    seatOffset,                  // Decalage d'attachement
+    BlockMountType.Seat
+);
+
+// Verifier la duree de montage
+long durationMs = mounted.getMountedDurationMs();
+```
+
+**Notes d'utilisation:**
+- Une entite ne peut avoir qu'un seul `MountedComponent` a la fois
+- La synchronisation reseau est automatique lorsque le flag outdated est defini
+- Utilise pour les entites montables (chevaux) et les montures de blocs (chaises, lits)
+
+---
+
+### MountedByComponent
+
+**Package:** `com.hypixel.hytale.builtin.mounts`
+
+Le `MountedByComponent` est ajoute a une entite qui peut transporter des passagers. Il suit toutes les entites actuellement montees dessus.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/mounts/MountedByComponent.java`
+
+```java
+public class MountedByComponent implements Component<EntityStore> {
+   @Nonnull
+   private final List<Ref<EntityStore>> passengers = new ObjectArrayList<>();
+
+   public static ComponentType<EntityStore, MountedByComponent> getComponentType() {
+      return MountPlugin.getInstance().getMountedByComponentType();
+   }
+
+   @Nonnull
+   public List<Ref<EntityStore>> getPassengers();
+   public void addPassenger(Ref<EntityStore> passenger);
+   public void removePassenger(Ref<EntityStore> ref);
+   @Nonnull
+   public MountedByComponent withPassenger(Ref<EntityStore> passenger);
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `passengers` | `List<Ref<EntityStore>>` | Liste des entites actuellement montees sur cette entite |
+
+**Comment utiliser:**
+
+```java
+// Ajouter le composant pour rendre l'entite montable
+holder.addComponent(MountedByComponent.getComponentType(), new MountedByComponent());
+
+// Ajouter un passager
+MountedByComponent mountedBy = store.getComponent(horseRef, MountedByComponent.getComponentType());
+mountedBy.addPassenger(playerRef);
+
+// Obtenir tous les passagers
+List<Ref<EntityStore>> passengers = mountedBy.getPassengers();
+for (Ref<EntityStore> passenger : passengers) {
+    // Traiter chaque cavalier
+}
+
+// API fluide pour l'initialisation
+MountedByComponent component = new MountedByComponent()
+    .withPassenger(riderRef);
+```
+
+**Notes d'utilisation:**
+- Supprime automatiquement les references de passagers invalides (supprimes)
+- Plusieurs passagers supportes pour vehicules/bateaux
+- Couple avec `MountedComponent` sur les entites montees
+
+---
+
+### NPCMountComponent
+
+**Package:** `com.hypixel.hytale.builtin.mounts`
+
+Le `NPCMountComponent` marque un PNJ comme monture (creature montable). Il stocke l'index du role original pour que le PNJ puisse reprendre son comportement normal apres demontage.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/mounts/NPCMountComponent.java`
+
+```java
+public class NPCMountComponent implements Component<EntityStore> {
+   public static final BuilderCodec<NPCMountComponent> CODEC = BuilderCodec.builder(...)
+      .append(new KeyedCodec<>("OriginalRoleIndex", Codec.INTEGER), ...)
+      .build();
+
+   private int originalRoleIndex;
+   private PlayerRef ownerPlayerRef;
+   private float anchorX, anchorY, anchorZ;
+
+   public static ComponentType<EntityStore, NPCMountComponent> getComponentType() {
+      return MountPlugin.getInstance().getMountComponentType();
+   }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `originalRoleIndex` | int | Index du role IA original du PNJ |
+| `ownerPlayerRef` | `PlayerRef` | Le joueur qui possede/a apprivoise cette monture |
+| `anchorX/Y/Z` | float | Point d'ancrage pour la monture |
+
+**Comment utiliser:**
+
+```java
+// Convertir un PNJ en monture
+NPCMountComponent mountComp = new NPCMountComponent();
+mountComp.setOriginalRoleIndex(npc.getRole().getIndex());
+mountComp.setOwnerPlayerRef(playerRef);
+commandBuffer.addComponent(npcRef, NPCMountComponent.getComponentType(), mountComp);
+
+// Restaurer le role original apres demontage
+int originalRole = mountComp.getOriginalRoleIndex();
+```
+
+**Notes d'utilisation:**
+- Serialise avec l'entite pour la persistance
+- Le suivi du proprietaire permet les mecaniques de rappel/apprivoisement de monture
+- Le point d'ancrage peut limiter la portee d'errance de la monture
+
+---
+
+### BlockMountComponent
+
+**Package:** `com.hypixel.hytale.builtin.mounts`
+
+Le `BlockMountComponent` est attache a un chunk pour suivre les places assises basees sur les blocs (chaises, bancs, lits). Il gere plusieurs positions de siege au sein d'un seul bloc.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/mounts/BlockMountComponent.java`
+
+```java
+public class BlockMountComponent implements Component<ChunkStore> {
+   private BlockMountType type;
+   private Vector3i blockPos;
+   private BlockType expectedBlockType;
+   private int expectedRotation;
+   private Map<BlockMountPoint, Ref<EntityStore>> entitiesByMountPoint;
+   private Map<Ref<EntityStore>, BlockMountPoint> mountPointByEntity;
+
+   public static ComponentType<ChunkStore, BlockMountComponent> getComponentType() {
+      return MountPlugin.getInstance().getBlockMountComponentType();
+   }
+
+   public void putSeatedEntity(@Nonnull BlockMountPoint mountPoint, @Nonnull Ref<EntityStore> seatedEntity);
+   public void removeSeatedEntity(@Nonnull Ref<EntityStore> seatedEntity);
+   @Nullable
+   public BlockMountPoint findAvailableSeat(@Nonnull Vector3i targetBlock,
+                                            @Nonnull BlockMountPoint[] choices,
+                                            @Nonnull Vector3f whereWasClicked);
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `type` | `BlockMountType` | Type de monture bloc (Seat, Bed, etc.) |
+| `blockPos` | `Vector3i` | Position monde du bloc |
+| `expectedBlockType` | `BlockType` | Type de bloc attendu pour validation |
+| `expectedRotation` | int | Rotation de bloc attendue |
+
+**Comment utiliser:**
+
+```java
+// Creer une monture bloc pour une chaise
+BlockMountComponent chair = new BlockMountComponent(
+    BlockMountType.Seat,
+    blockPosition,
+    chairBlockType,
+    blockRotation
+);
+
+// Trouver et asseoir l'entite au siege disponible le plus proche
+BlockMountPoint seat = chair.findAvailableSeat(blockPos, seatChoices, clickPos);
+if (seat != null) {
+    chair.putSeatedEntity(seat, playerRef);
+}
+
+// Retirer l'entite du siege
+chair.removeSeatedEntity(playerRef);
+
+// Verifier si la monture bloc est vide
+if (chair.isDead()) {
+    // Retirer le composant - plus d'entites assises
+}
+```
+
+**Notes d'utilisation:**
+- Stocke dans `ChunkStore` (composants de bloc), pas `EntityStore`
+- Supporte plusieurs positions de siege par bloc (bancs, canapes)
+- `findAvailableSeat` retourne le siege inoccupe le plus proche de la position du clic
+- Nettoie automatiquement les references d'entites invalides
+
+---
+
+### MinecartComponent
+
+**Package:** `com.hypixel.hytale.builtin.mounts.minecart`
+
+Le `MinecartComponent` identifie une entite comme un wagonnet. Il suit les degats de coup pour la destruction et l'item source pour les drops.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/mounts/minecart/MinecartComponent.java`
+
+```java
+public class MinecartComponent implements Component<EntityStore> {
+   public static final BuilderCodec<MinecartComponent> CODEC = BuilderCodec.builder(...)
+      .append(new KeyedCodec<>("SourceItem", Codec.STRING), ...)
+      .build();
+
+   private int numberOfHits = 0;
+   private Instant lastHit;
+   private String sourceItem = "Rail_Kart";
+
+   public static ComponentType<EntityStore, MinecartComponent> getComponentType() {
+      return MountPlugin.getInstance().getMinecartComponentType();
+   }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `numberOfHits` | int | 0 | Nombre de coups recus (pour destruction) |
+| `lastHit` | `Instant` | null | Moment du dernier coup |
+| `sourceItem` | String | "Rail_Kart" | ID de l'item laisse a la destruction |
+
+**Comment utiliser:**
+
+```java
+// Creer une entite wagonnet
+MinecartComponent minecart = new MinecartComponent("Custom_Minecart");
+holder.addComponent(MinecartComponent.getComponentType(), minecart);
+
+// Suivre les degats
+minecart.setNumberOfHits(minecart.getNumberOfHits() + 1);
+minecart.setLastHit(Instant.now());
+
+// Verifier si doit casser
+if (minecart.getNumberOfHits() >= BREAK_THRESHOLD) {
+    // Lacher l'item source et supprimer l'entite
+    String dropItem = minecart.getSourceItem();
+}
+```
+
+**Notes d'utilisation:**
+- Les wagonnets suivent automatiquement les blocs de rail
+- Le systeme de coups multiples permet une destruction par coups
+- L'item source determine ce qui est lache lorsque le wagonnet est detruit
+
+---
+
+## Composants du Systeme de Deployables
+
+Les deployables sont des entites placees par les joueurs comme des tourelles, pieges et autres dispositifs automatises.
+
+### DeployableComponent
+
+**Package:** `com.hypixel.hytale.builtin.deployables.component`
+
+Le `DeployableComponent` marque une entite comme un dispositif deployable. Il suit le proprietaire, la configuration, le moment de spawn et des flags personnalises pour l'etat du deployable.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/deployables/component/DeployableComponent.java`
+
+```java
+public class DeployableComponent implements Component<EntityStore> {
+   private final Map<DeployableFlag, Integer> flags = new EnumMap<>(DeployableFlag.class);
+   private DeployableConfig config;
+   private Ref<EntityStore> owner;
+   private UUID ownerUUID;
+   private Instant spawnInstant;
+   private float timeSinceLastAttack;
+   private String spawnFace;
+
+   public static ComponentType<EntityStore, DeployableComponent> getComponentType() {
+      return DeployablesPlugin.get().getDeployableComponentType();
+   }
+
+   public enum DeployableFlag {
+      STATE, LIVE, BURST_SHOTS, TRIGGERED;
+   }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `config` | `DeployableConfig` | Asset de configuration definissant le comportement |
+| `owner` | `Ref<EntityStore>` | Reference a l'entite qui a deploye |
+| `ownerUUID` | `UUID` | UUID du proprietaire pour la persistance |
+| `spawnInstant` | `Instant` | Moment ou le deployable a ete place |
+| `timeSinceLastAttack` | float | Timer de cooldown pour les attaques |
+| `spawnFace` | String | Sur quelle face le deployable a ete place |
+| `flags` | `Map<DeployableFlag, Integer>` | Flags d'etat personnalises |
+
+**Enum DeployableFlag:**
+
+| Flag | Description |
+|------|-------------|
+| `STATE` | Etat actuel de la machine d'etat |
+| `LIVE` | Si le deployable est actif |
+| `BURST_SHOTS` | Tirs restants en rafale |
+| `TRIGGERED` | Si la condition de declenchement a ete remplie |
+
+**Comment utiliser:**
+
+```java
+// Creer un deployable
+DeployableComponent deployable = new DeployableComponent();
+deployable.init(playerRef, store, config, Instant.now(), "up");
+holder.addComponent(DeployableComponent.getComponentType(), deployable);
+
+// Suivre le cooldown d'attaque
+deployable.incrementTimeSinceLastAttack(deltaTime);
+if (deployable.getTimeSinceLastAttack() >= config.getAttackCooldown()) {
+    // Peut attaquer
+    deployable.setTimeSinceLastAttack(0);
+}
+
+// Utiliser les flags pour l'etat personnalise
+deployable.setFlag(DeployableFlag.BURST_SHOTS, 3);
+int remaining = deployable.getFlag(DeployableFlag.BURST_SHOTS);
+```
+
+**Notes d'utilisation:**
+- Les deployables tickent via leur `DeployableConfig` qui definit le comportement
+- Le premier tick execute la logique d'initialisation (ex: jouer l'animation de spawn)
+- Le suivi du proprietaire permet l'attribution correcte des degats/kills
+
+---
+
+### DeployableOwnerComponent
+
+**Package:** `com.hypixel.hytale.builtin.deployables.component`
+
+Le `DeployableOwnerComponent` est attache aux entites qui possedent des deployables. Il suit tous les deployables places par l'entite et applique les limites.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/deployables/component/DeployableOwnerComponent.java`
+
+```java
+public class DeployableOwnerComponent implements Component<EntityStore> {
+   private final List<Pair<String, Ref<EntityStore>>> deployables = new ObjectArrayList<>();
+   private final Object2IntMap<String> deployableCountPerId = new Object2IntOpenHashMap<>();
+
+   public static ComponentType<EntityStore, DeployableOwnerComponent> getComponentType() {
+      return DeployablesPlugin.get().getDeployableOwnerComponentType();
+   }
+
+   public void registerDeployable(...);
+   public void deRegisterDeployable(@Nonnull String id, @Nonnull Ref<EntityStore> deployable);
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `deployables` | `List<Pair<String, Ref<EntityStore>>>` | Tous les deployables possedes |
+| `deployableCountPerId` | `Object2IntMap<String>` | Compte par type de deployable |
+
+**Comment utiliser:**
+
+```java
+// Obtenir le composant proprietaire
+DeployableOwnerComponent owner = store.getComponent(playerRef,
+    DeployableOwnerComponent.getComponentType());
+
+// Enregistrer un nouveau deployable
+owner.registerDeployable(playerRef, deployableComp, "turret", turretRef, store);
+
+// Desenregistrer a la destruction
+owner.deRegisterDeployable("turret", turretRef);
+```
+
+**Notes d'utilisation:**
+- Detruit automatiquement les deployables les plus anciens lorsque les limites sont depassees
+- Limites par type et globales depuis `GameplayConfig`
+- Gere le nettoyage a la suppression de l'entite
+
+---
+
+### DeployableProjectileComponent
+
+**Package:** `com.hypixel.hytale.builtin.deployables.component`
+
+Le `DeployableProjectileComponent` marque un projectile comme tire par un deployable. Il suit la position precedente pour la detection de collision.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/deployables/component/DeployableProjectileComponent.java`
+
+```java
+public class DeployableProjectileComponent implements Component<EntityStore> {
+   protected Vector3d previousTickPosition;
+
+   public static ComponentType<EntityStore, DeployableProjectileComponent> getComponentType() {
+      return DeployablesPlugin.get().getDeployableProjectileComponentType();
+   }
+
+   public Vector3d getPreviousTickPosition();
+   public void setPreviousTickPosition(@Nonnull Vector3d pos);
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `previousTickPosition` | `Vector3d` | Position au tick precedent |
+
+**Notes d'utilisation:**
+- Utilise pour la detection de collision balayee (ligne de la position precedente a actuelle)
+- Essentiel pour les projectiles rapides qui pourraient traverser les cibles
+
+---
+
+### DeployableProjectileShooterComponent
+
+**Package:** `com.hypixel.hytale.builtin.deployables.component`
+
+Le `DeployableProjectileShooterComponent` est ajoute aux deployables qui peuvent tirer des projectiles. Il suit les projectiles actifs et la cible actuelle.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/deployables/component/DeployableProjectileShooterComponent.java`
+
+```java
+public class DeployableProjectileShooterComponent implements Component<EntityStore> {
+   protected final List<Ref<EntityStore>> projectiles = new ObjectArrayList<>();
+   protected Ref<EntityStore> activeTarget;
+
+   public static ComponentType<EntityStore, DeployableProjectileShooterComponent> getComponentType() {
+      return DeployablesPlugin.get().getDeployableProjectileShooterComponentType();
+   }
+
+   public void spawnProjectile(...);
+   public List<Ref<EntityStore>> getProjectiles();
+   public Ref<EntityStore> getActiveTarget();
+   public void setActiveTarget(Ref<EntityStore> target);
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `projectiles` | `List<Ref<EntityStore>>` | Projectiles actuellement actifs |
+| `activeTarget` | `Ref<EntityStore>` | Entite cible actuelle |
+
+**Notes d'utilisation:**
+- Gere la duree de vie des projectiles tires
+- Suivi de cible pour les tourelles a visee automatique
+- Nettoyage lorsque les projectiles touchent ou disparaissent
+
+---
+
+## Composants du Systeme d'Aventure
+
+Ces composants font partie des fonctionnalites du mode aventure d'Hytale incluant les quetes, la reputation et l'agriculture.
+
+### ObjectiveHistoryComponent
+
+**Package:** `com.hypixel.hytale.builtin.adventure.objectives.components`
+
+Le `ObjectiveHistoryComponent` suit la progression et l'historique de completion des quetes/objectifs d'un joueur.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/adventure/objectives/components/ObjectiveHistoryComponent.java`
+
+```java
+public class ObjectiveHistoryComponent implements Component<EntityStore> {
+   public static final BuilderCodec<ObjectiveHistoryComponent> CODEC = BuilderCodec.builder(...)
+      .append(new KeyedCodec<>("ObjectiveHistory", new MapCodec<>(...)), ...)
+      .append(new KeyedCodec<>("ObjectiveLineHistory", new MapCodec<>(...)), ...)
+      .build();
+
+   private Map<String, ObjectiveHistoryData> objectiveHistoryMap = new Object2ObjectOpenHashMap<>();
+   private Map<String, ObjectiveLineHistoryData> objectiveLineHistoryMap = new Object2ObjectOpenHashMap<>();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `objectiveHistoryMap` | `Map<String, ObjectiveHistoryData>` | Historique par ID d'objectif |
+| `objectiveLineHistoryMap` | `Map<String, ObjectiveLineHistoryData>` | Historique par ligne d'objectif |
+
+**Notes d'utilisation:**
+- Persiste avec les donnees du joueur
+- Suit le statut de completion, les horodatages et la progression
+- Utilise pour l'interface des quetes et les verifications de progression
+
+---
+
+### ReputationGroupComponent
+
+**Package:** `com.hypixel.hytale.builtin.adventure.reputation`
+
+Le `ReputationGroupComponent` assigne une entite a un groupe de reputation, affectant la facon dont les factions la percoivent.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/adventure/reputation/ReputationGroupComponent.java`
+
+```java
+public class ReputationGroupComponent implements Component<EntityStore> {
+   private final String reputationGroupId;
+
+   public static ComponentType<EntityStore, ReputationGroupComponent> getComponentType() {
+      return ReputationPlugin.get().getReputationGroupComponentType();
+   }
+
+   public ReputationGroupComponent(@Nonnull String reputationGroupId);
+   public String getReputationGroupId();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `reputationGroupId` | String | ID du groupe de reputation (faction) |
+
+**Comment utiliser:**
+
+```java
+// Assigner l'entite a une faction
+ReputationGroupComponent rep = new ReputationGroupComponent("hytale:village_faction");
+holder.addComponent(ReputationGroupComponent.getComponentType(), rep);
+
+// Verifier la faction pour les decisions d'IA
+String faction = rep.getReputationGroupId();
+boolean isFriendly = reputationSystem.areFactionsFriendly(playerFaction, faction);
+```
+
+**Notes d'utilisation:**
+- Les PNJ utilisent ceci pour determiner les relations ami/ennemi
+- Les actions du joueur affectent la reputation avec differents groupes
+- Lie au systeme de reputation/faction
+
+---
+
+### CoopResidentComponent
+
+**Package:** `com.hypixel.hytale.builtin.adventure.farming.component`
+
+Le `CoopResidentComponent` marque une entite comme resident d'un poulailler ou structure agricole similaire.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/adventure/farming/component/CoopResidentComponent.java`
+
+```java
+public class CoopResidentComponent implements Component<EntityStore> {
+   public static final BuilderCodec<CoopResidentComponent> CODEC = BuilderCodec.builder(...)
+      .append(new KeyedCodec<>("CoopLocation", Vector3i.CODEC), ...)
+      .append(new KeyedCodec<>("MarkedForDespawn", BuilderCodec.BOOLEAN), ...)
+      .build();
+
+   private Vector3i coopLocation = new Vector3i();
+   private boolean markedForDespawn;
+
+   public static ComponentType<EntityStore, CoopResidentComponent> getComponentType() {
+      return FarmingPlugin.get().getCoopResidentComponentType();
+   }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `coopLocation` | `Vector3i` | (0,0,0) | Position du poulailler d'origine |
+| `markedForDespawn` | boolean | false | Si l'entite doit disparaitre |
+
+**Notes d'utilisation:**
+- Utilise pour les poulets, animaux de ferme qui retournent aux structures
+- Localisation du poulailler pour le pathfinding "maison"
+- Marquage de despawn pour le nettoyage lorsque le poulailler est detruit
+
+---
+
+## Composants du Systeme de Spawn
+
+Composants lies au spawn des PNJ et entites.
+
+### SpawnSuppressionComponent
+
+**Package:** `com.hypixel.hytale.server.spawning.suppression.component`
+
+Le `SpawnSuppressionComponent` marque une entite comme supprimant les spawns dans une zone (comme les torches empechant le spawn de mobs).
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/spawning/suppression/component/SpawnSuppressionComponent.java`
+
+```java
+public class SpawnSuppressionComponent implements Component<EntityStore> {
+   public static final BuilderCodec<SpawnSuppressionComponent> CODEC = BuilderCodec.builder(...)
+      .append(new KeyedCodec<>("SpawnSuppression", Codec.STRING), ...)
+      .build();
+
+   private String spawnSuppression;
+
+   public static ComponentType<EntityStore, SpawnSuppressionComponent> getComponentType() {
+      return SpawningPlugin.get().getSpawnSuppressorComponentType();
+   }
+
+   public String getSpawnSuppression();
+   public void setSpawnSuppression(String spawnSuppression);
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `spawnSuppression` | String | ID de l'asset de suppression de spawn |
+
+**Comment utiliser:**
+
+```java
+// Ajouter la suppression de spawn a une entite source de lumiere
+SpawnSuppressionComponent suppression = new SpawnSuppressionComponent("hytale:torch_suppression");
+holder.addComponent(SpawnSuppressionComponent.getComponentType(), suppression);
+```
+
+**Notes d'utilisation:**
+- Reference un asset `SpawnSuppression` definissant le rayon et les conditions
+- Utilise par les torches, feux de camp et autres sources de lumiere
+- Empeche le spawn de mobs hostiles dans la zone
+
+---
+
+## Composants du Systeme PNJ
+
+### StepComponent
+
+**Package:** `com.hypixel.hytale.server.npc.components`
+
+Le `StepComponent` controle le taux de tick pour le traitement de l'IA des PNJ, permettant des mises a jour plus lentes pour les PNJ distants ou peu importants.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/npc/components/StepComponent.java`
+
+```java
+public class StepComponent implements Component<EntityStore> {
+   private final float tickLength;
+
+   public static ComponentType<EntityStore, StepComponent> getComponentType() {
+      return NPCPlugin.get().getStepComponentType();
+   }
+
+   public StepComponent(float tickLength);
+   public float getTickLength();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `tickLength` | float | Temps entre les mises a jour de l'IA en secondes |
+
+**Notes d'utilisation:**
+- Tick length plus eleve = mises a jour moins frequentes = meilleures performances
+- Les PNJ distants peuvent utiliser des tick lengths plus longs
+- Immuable une fois cree
+
+---
+
+### FailedSpawnComponent
+
+**Package:** `com.hypixel.hytale.server.npc.components`
+
+Le `FailedSpawnComponent` est un composant marqueur ajoute lorsqu'un PNJ echoue a spawn correctement. Utilise pour le nettoyage et le debogage.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/npc/components/FailedSpawnComponent.java`
+
+```java
+public class FailedSpawnComponent implements Component<EntityStore> {
+   public static ComponentType<EntityStore, FailedSpawnComponent> getComponentType() {
+      return NPCPlugin.get().getFailedSpawnComponentType();
+   }
+}
+```
+
+**Proprietes:**
+- Aucune (composant marqueur)
+
+**Notes d'utilisation:**
+- Les systemes verifient ceci pour nettoyer les spawns echoues
+- Utile pour deboguer les problemes de spawn
+
+---
+
+## Composants Utilitaires
+
+### SnapshotBuffer
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.component`
+
+Le composant `SnapshotBuffer` stocke les donnees historiques de position/rotation d'une entite. Utilise pour la compensation de lag et le retour en arriere de l'etat de l'entite.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/component/SnapshotBuffer.java`
+
+```java
+public class SnapshotBuffer implements Component<EntityStore> {
+   private EntitySnapshot[] snapshots;
+   private int currentTickIndex;
+   private int oldestTickIndex;
+   private int currentIndex;
+
+   public static ComponentType<EntityStore, SnapshotBuffer> getComponentType() {
+      return EntityModule.get().getSnapshotBufferComponentType();
+   }
+
+   @Nonnull
+   public EntitySnapshot getSnapshotClamped(int tickIndex);
+   @Nullable
+   public EntitySnapshot getSnapshot(int tickIndex);
+   public void storeSnapshot(int tickIndex, @Nonnull Vector3d position, @Nonnull Vector3f bodyRotation);
+   public void resize(int newLength);
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `snapshots` | `EntitySnapshot[]` | Buffer circulaire de snapshots historiques |
+| `currentTickIndex` | int | Tick serveur actuel |
+| `oldestTickIndex` | int | Tick du snapshot le plus ancien disponible |
+
+**Comment utiliser:**
+
+```java
+// Initialiser le buffer pour 20 ticks d'historique
+SnapshotBuffer buffer = new SnapshotBuffer();
+buffer.resize(20);
+
+// Stocker un snapshot a chaque tick
+buffer.storeSnapshot(tickIndex, position, rotation);
+
+// Recuperer la position historique pour la compensation de lag
+EntitySnapshot historical = buffer.getSnapshotClamped(tickIndex - playerLatencyTicks);
+Vector3d pastPosition = historical.getPosition();
+```
+
+**Notes d'utilisation:**
+- Essentiel pour la detection de hit cote serveur avec compensation de lag
+- Le buffer circulaire ecrase automatiquement les entrees les plus anciennes
+- `getSnapshotClamped` retourne le plus ancien si le tick demande est trop vieux
+
+---
+
+### ApplyRandomSkinPersistedComponent
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.player`
+
+Le `ApplyRandomSkinPersistedComponent` est un composant marqueur indiquant qu'une entite devrait avoir un skin aleatoire applique au chargement.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/player/ApplyRandomSkinPersistedComponent.java`
+
+```java
+public class ApplyRandomSkinPersistedComponent implements Component<EntityStore> {
+   public static final ApplyRandomSkinPersistedComponent INSTANCE = new ApplyRandomSkinPersistedComponent();
+   public static final BuilderCodec<ApplyRandomSkinPersistedComponent> CODEC = ...;
+
+   public static ComponentType<EntityStore, ApplyRandomSkinPersistedComponent> getComponentType() {
+      return EntityModule.get().getApplyRandomSkinPersistedComponent();
+   }
+}
+```
+
+**Proprietes:**
+- Aucune (composant marqueur, pattern singleton)
+
+**Notes d'utilisation:**
+- Ajoute aux PNJ qui devraient avoir des apparences variees
+- Le skin est applique depuis un pool au chargement de l'entite
+- Persiste pour que le skin reste coherent entre les sauvegardes
+
+---
+
+### PlacedByInteractionComponent
+
+**Package:** `com.hypixel.hytale.server.core.modules.interaction.components`
+
+Le `PlacedByInteractionComponent` est un composant de chunk qui suit qui a place un bloc. Utilise pour les permissions, la propriete et l'attribution.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/interaction/components/PlacedByInteractionComponent.java`
+
+```java
+public class PlacedByInteractionComponent implements Component<ChunkStore> {
+   public static final BuilderCodec<PlacedByInteractionComponent> CODEC = BuilderCodec.builder(...)
+      .appendInherited(new KeyedCodec<>("WhoPlacedUuid", Codec.UUID_BINARY), ...)
+      .build();
+
+   private UUID whoPlacedUuid;
+
+   public static ComponentType<ChunkStore, PlacedByInteractionComponent> getComponentType() {
+      return InteractionModule.get().getPlacedByComponentType();
+   }
+
+   public UUID getWhoPlacedUuid();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `whoPlacedUuid` | UUID | UUID de l'entite qui a place le bloc |
+
+**Comment utiliser:**
+
+```java
+// Quand le joueur place un bloc
+PlacedByInteractionComponent placed = new PlacedByInteractionComponent(playerUuid);
+chunkCommandBuffer.addComponent(blockRef, PlacedByInteractionComponent.getComponentType(), placed);
+
+// Verifier qui a place un bloc
+PlacedByInteractionComponent placed = chunkStore.getComponent(blockRef,
+    PlacedByInteractionComponent.getComponentType());
+if (placed != null) {
+    UUID placer = placed.getWhoPlacedUuid();
+}
+```
+
+**Notes d'utilisation:**
+- Stocke dans `ChunkStore` (composants de bloc)
+- Utilise pour les systemes de reclamation de terrain, protection contre le griefing
+- Persiste avec les donnees de chunk
+
+---
+
+### AmbientEmitterComponent
+
+**Package:** `com.hypixel.hytale.builtin.ambience.components`
+
+Le `AmbientEmitterComponent` fait qu'une entite emet des sons ambiants. Utilise pour l'audio environnemental comme les cascades, le vent ou les machines.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/builtin/ambience/components/AmbientEmitterComponent.java`
+
+```java
+public class AmbientEmitterComponent implements Component<EntityStore> {
+   public static final BuilderCodec<AmbientEmitterComponent> CODEC = BuilderCodec.builder(...)
+      .append(new KeyedCodec<>("SoundEventId", Codec.STRING), ...)
+      .build();
+
+   private String soundEventId;
+   private Ref<EntityStore> spawnedEmitter;
+
+   public static ComponentType<EntityStore, AmbientEmitterComponent> getComponentType() {
+      return AmbiencePlugin.get().getAmbientEmitterComponentType();
+   }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `soundEventId` | String | ID de l'evenement sonore a jouer |
+| `spawnedEmitter` | `Ref<EntityStore>` | Reference a l'entite emetteur spawnee |
+
+**Comment utiliser:**
+
+```java
+// Creer un emetteur de son ambiant
+AmbientEmitterComponent ambient = new AmbientEmitterComponent();
+ambient.setSoundEventId("hytale:waterfall_ambient");
+holder.addComponent(AmbientEmitterComponent.getComponentType(), ambient);
+```
+
+**Notes d'utilisation:**
+- Le son joue en boucle a la position de l'entite
+- Utilise pour les sources audio environnementales statiques
+- Peut etre attache aux entites de bloc ou aux marqueurs invisibles
