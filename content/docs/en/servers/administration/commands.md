@@ -928,3 +928,986 @@ Displays server CPU statistics.
 ```
 /server stats cpu
 ```
+
+---
+
+## Inventory Commands
+
+Commands for managing player inventories, items, and equipment.
+
+### give
+
+Gives items to a player.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/give <item> [quantity] [metadata]` |
+| **Permission** | `give.self`, `give.other` |
+
+**Parameters:**
+- `item` - The item asset ID to give
+- `quantity` (optional) - Number of items to give (default: 1)
+- `metadata` (optional) - JSON metadata string for the item
+
+**Usage variants:**
+- `/give <player> <item> [quantity] [metadata]` - Give items to another player (requires `give.other` permission)
+
+**Examples:**
+```
+/give Sword_Iron
+/give Sword_Iron 5
+/give PlayerName Pickaxe_Diamond 1
+/give Potion_Health 3 {"durability": 100}
+```
+
+---
+
+### give armor
+
+Gives a complete set of armor matching a search pattern.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/give armor <search> [--set] [player]` |
+
+**Parameters:**
+- `search` - Search string to match armor types (e.g., "Iron", "Diamond")
+- `--set` (flag) - Clear existing armor before adding new armor
+- `player` (optional) - Target player (use "*" for all players)
+
+**Examples:**
+```
+/give armor Iron
+/give armor Diamond --set
+/give armor Gold PlayerName
+/give armor Iron *
+```
+
+---
+
+### inventory
+
+Parent command for inventory management subcommands.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/inventory <subcommand>` |
+| **Aliases** | `inv` |
+
+**Subcommands:**
+- `clear` - Clear inventory
+- `see` - View another player's inventory
+- `item` - Open item container
+- `backpack` - Manage backpack size
+
+---
+
+### inventory clear
+
+Clears the player's entire inventory.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/inventory clear` |
+| **Aliases** | `/inv clear` |
+| **Game Mode** | Creative |
+
+**Examples:**
+```
+/inventory clear
+/inv clear
+```
+
+---
+
+### inventory see
+
+Opens and views another player's inventory.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/inventory see <player>` |
+| **Permission** | `invsee.modify` (for editing) |
+
+**Parameters:**
+- `player` - Target player whose inventory to view
+
+**Notes:**
+- Without `invsee.modify` permission, the inventory is read-only
+- Opens the target player's inventory in a bench interface
+
+**Examples:**
+```
+/inventory see PlayerName
+/inv see PlayerName
+```
+
+---
+
+### inventory item
+
+Opens the container of the currently held item (e.g., backpack, pouch).
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/inventory item` |
+
+**Requirements:**
+- Must have an item in hand
+- Item must have a container component
+
+**Examples:**
+```
+/inventory item
+/inv item
+```
+
+---
+
+### inventory backpack
+
+Gets or sets the backpack capacity.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/inventory backpack [size]` |
+
+**Parameters:**
+- `size` (optional) - New backpack capacity. If not specified, displays current capacity.
+
+**Notes:**
+- Items that don't fit after resizing are dropped on the ground
+
+**Examples:**
+```
+/inventory backpack
+/inventory backpack 20
+/inv backpack 30
+```
+
+---
+
+### itemstate
+
+Sets the state of the currently held item.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/itemstate <state>` |
+| **Game Mode** | Creative |
+
+**Parameters:**
+- `state` - The state string to apply to the item
+
+**Requirements:**
+- Must have an item in the active hotbar slot
+
+**Examples:**
+```
+/itemstate charged
+/itemstate broken
+/itemstate enchanted
+```
+
+---
+
+## Lighting Commands
+
+Commands for managing world lighting calculations and data.
+
+### lighting
+
+Parent command for lighting subcommands.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/lighting <subcommand>` |
+| **Aliases** | `light` |
+
+**Subcommands:**
+- `get` - Get light values at a position
+- `send` - Toggle lighting data sending
+- `info` - Display lighting system information
+- `calculation` - Set lighting calculation mode
+- `invalidate` - Invalidate lighting data
+
+---
+
+### lighting get
+
+Gets the light values at a specific position.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/lighting get <x> <y> <z> [--hex]` |
+
+**Parameters:**
+- `x y z` - Block coordinates (supports relative coordinates with ~)
+- `--hex` (flag) - Display light value in hexadecimal format
+
+**Information displayed:**
+- Red light value (0-15)
+- Green light value (0-15)
+- Blue light value (0-15)
+- Sky light value (0-15)
+
+**Examples:**
+```
+/lighting get 0 64 0
+/lighting get ~ ~ ~
+/lighting get ~ ~1 ~ --hex
+/light get 100 50 200
+```
+
+---
+
+### lighting send
+
+Controls whether lighting data is sent to clients.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/lighting send <local\|global> [enabled]` |
+
+**Subcommands:**
+- `local` - Toggle local lighting data sending
+- `global` - Toggle global lighting data sending
+
+**Parameters:**
+- `enabled` (optional) - Boolean value. Toggles if not specified.
+
+**Examples:**
+```
+/lighting send local
+/lighting send local true
+/lighting send global false
+```
+
+---
+
+### lighting info
+
+Displays information about the lighting system.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/lighting info [--detail]` |
+
+**Parameters:**
+- `--detail` (flag) - Show detailed chunk lighting statistics
+
+**Information displayed:**
+- Lighting queue size
+- Light calculation type
+- (With --detail) Total chunk sections, sections with local/global light
+
+**Examples:**
+```
+/lighting info
+/lighting info --detail
+```
+
+---
+
+### lighting calculation
+
+Sets the lighting calculation mode.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/lighting calculation <type> [--invalidate]` |
+
+**Parameters:**
+- `type` - Calculation type: `FLOOD` or `FULLBRIGHT`
+- `--invalidate` (flag) - Invalidate all loaded chunks after changing
+
+**Calculation types:**
+- `FLOOD` - Standard flood-fill lighting calculation
+- `FULLBRIGHT` - Full brightness (no shadows)
+
+**Examples:**
+```
+/lighting calculation FLOOD
+/lighting calculation FULLBRIGHT
+/lighting calculation FLOOD --invalidate
+```
+
+---
+
+### lighting invalidate
+
+Invalidates lighting data, forcing recalculation.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/lighting invalidate [--one]` |
+
+**Parameters:**
+- `--one` (flag) - Only invalidate the chunk section at the player's position
+
+**Notes:**
+- Without `--one`, invalidates all loaded chunks
+- Requires player context when using `--one`
+
+**Examples:**
+```
+/lighting invalidate
+/lighting invalidate --one
+```
+
+---
+
+## World Generation Commands
+
+Commands for world generation management and benchmarking.
+
+### worldgen
+
+Parent command for world generation subcommands.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/worldgen <subcommand>` |
+| **Aliases** | `wg` |
+
+**Subcommands:**
+- `reload` - Reload world generation settings
+- `benchmark` - Benchmark world generation performance
+
+---
+
+### worldgen reload
+
+Reloads the world generation configuration.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/worldgen reload [--clear]` |
+
+**Parameters:**
+- `--clear` (flag) - Delete all saved chunks and regenerate loaded chunks
+
+**Warning:** Using `--clear` will delete all chunk data and regenerate the world.
+
+**Examples:**
+```
+/worldgen reload
+/wg reload
+/worldgen reload --clear
+```
+
+---
+
+### worldgen benchmark
+
+Benchmarks world generation performance.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/worldgen benchmark <pos1> <pos2> [world] [seed]` |
+
+**Parameters:**
+- `pos1` - First corner coordinates (X, Z)
+- `pos2` - Second corner coordinates (X, Z)
+- `world` (optional) - Target world
+- `seed` (optional) - Generation seed (uses world seed if not specified)
+
+**Notes:**
+- Generates chunks in the specified area for benchmarking
+- Results are saved to the `quantification/` folder
+- Only works with world generators that support benchmarking
+
+**Examples:**
+```
+/worldgen benchmark 0,0 1000,1000
+/wg benchmark -500,-500 500,500
+/worldgen benchmark 0,0 2000,2000 MyWorld 12345
+```
+
+---
+
+## Spawn Commands
+
+Commands for spawning entities in the world.
+
+### spawnblock
+
+Spawns a block entity at a specified position.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/spawnblock <block> <x> <y> <z> [rotation]` |
+
+**Parameters:**
+- `block` - Block type key to spawn
+- `x y z` - Position coordinates (supports relative coordinates with ~)
+- `rotation` (optional) - Rotation vector (yaw, pitch, roll)
+
+**Examples:**
+```
+/spawnblock Chest ~ ~ ~
+/spawnblock Torch 100 64 200
+/spawnblock Lantern ~ ~2 ~ 0,45,0
+```
+
+---
+
+## Additional Player Commands
+
+Extended player management commands.
+
+### player respawn
+
+Forces a player to respawn.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/player respawn [player]` |
+
+**Parameters:**
+- `player` (optional) - Target player (self if not specified)
+
+**Notes:**
+- Removes the death component, allowing the player to respawn
+
+**Examples:**
+```
+/player respawn
+/player respawn PlayerName
+```
+
+---
+
+### player reset
+
+Resets a player's data completely.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/player reset [player]` |
+
+**Parameters:**
+- `player` (optional) - Target player (self if not specified)
+
+**Warning:** This will reset all player data including inventory, stats, and progress.
+
+**Examples:**
+```
+/player reset
+/player reset PlayerName
+```
+
+---
+
+### player zone
+
+Displays the current zone and biome information.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/player zone [player]` |
+
+**Parameters:**
+- `player` (optional) - Target player (self if not specified)
+
+**Information displayed:**
+- Current zone name
+- Current biome name
+
+**Examples:**
+```
+/player zone
+/player zone PlayerName
+```
+
+---
+
+### player viewradius
+
+Manage player view radius settings.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/player viewradius <subcommand>` |
+
+**Subcommands:**
+
+| Subcommand | Syntax | Description |
+|------------|--------|-------------|
+| `get` | `/player viewradius get [player]` | Get current view radius |
+| `set` | `/player viewradius set <radius> [--blocks] [--bypass] [player]` | Set view radius |
+
+**Set parameters:**
+- `radius` - View radius in chunks (or "default" for 32)
+- `--blocks` (flag) - Interpret radius as blocks instead of chunks
+- `--bypass` (flag) - Allow exceeding server maximum
+
+**Examples:**
+```
+/player viewradius get
+/player viewradius set 16
+/player viewradius set 512 --blocks
+/player viewradius set default
+```
+
+---
+
+### sudo
+
+Execute a command as another player.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/sudo <player> <command>` |
+| **Aliases** | `su` |
+
+**Parameters:**
+- `player` - Target player (or "*" for all players)
+- `command` - Command to execute (with or without leading /)
+
+**Examples:**
+```
+/sudo PlayerName gamemode creative
+/sudo * notify Hello everyone!
+/su PlayerName /whereami
+```
+
+---
+
+### refer
+
+Transfers a player to another server.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/refer <host> <port> [player]` |
+| **Aliases** | `transfer` |
+| **Permission** | `refer.self`, `refer.other` |
+
+**Parameters:**
+- `host` - Target server hostname or IP
+- `port` - Target server port (1-65535)
+- `player` (optional) - Target player (self if not specified)
+
+**Examples:**
+```
+/refer play.example.com 25565
+/refer 192.168.1.100 25565 PlayerName
+/transfer server.example.net 25566
+```
+
+---
+
+### toggleBlockPlacementOverride
+
+Toggles block placement restriction override.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/toggleBlockPlacementOverride` |
+| **Aliases** | `tbpo`, `togglePlacement` |
+
+**Notes:**
+- When enabled, allows placing blocks in restricted areas
+- Useful for building in protected zones
+
+**Examples:**
+```
+/toggleBlockPlacementOverride
+/tbpo
+/togglePlacement
+```
+
+---
+
+## Additional Entity Commands
+
+Extended entity management commands.
+
+### entity nameplate
+
+Set or remove entity nameplates.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/entity nameplate <text> [entity]` |
+
+**Parameters:**
+- `text` - The text to display on the nameplate
+- `entity` (optional) - Entity ID (uses looked-at entity if not specified)
+
+**Usage variants:**
+- `/entity nameplate <text> [entity]` - Set nameplate text
+- `/entity nameplate [entity]` - Remove nameplate
+
+**Examples:**
+```
+/entity nameplate "Boss Monster"
+/entity nameplate "Shop Keeper" 12345
+/entity nameplate
+```
+
+---
+
+### entity resend
+
+Forces resending of all entity data to a player.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/entity resend <player>` |
+
+**Parameters:**
+- `player` - Target player to resend entities to
+
+**Notes:**
+- Despawns all entities for the player, causing them to be resent
+
+**Examples:**
+```
+/entity resend PlayerName
+```
+
+---
+
+### entity tracker
+
+Displays entity tracker statistics for a player.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/entity tracker <player>` |
+
+**Parameters:**
+- `player` - Target player
+
+**Information displayed:**
+- Visible entity count
+- LOD excluded count
+- Hidden entity count
+- Total tracked entities
+- World total entity count
+- View radius information
+
+**Examples:**
+```
+/entity tracker PlayerName
+```
+
+---
+
+### entity lod
+
+Sets the entity Level of Detail (LOD) culling ratio.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/entity lod <ratio>` |
+
+**Parameters:**
+- `ratio` - LOD ratio value (e.g., 0.000035)
+
+**Subcommands:**
+- `/entity lod default` - Reset to default LOD ratio (0.000035)
+
+**Examples:**
+```
+/entity lod 0.00005
+/entity lod 0.00002
+/entity lod default
+```
+
+---
+
+### entity interactable
+
+Makes an entity interactable or removes interactability.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/entity interactable [--disable] [entity]` |
+
+**Parameters:**
+- `--disable` (flag) - Remove interactability instead of adding it
+- `entity` (optional) - Entity ID (uses looked-at entity if not specified)
+
+**Examples:**
+```
+/entity interactable
+/entity interactable --disable
+/entity interactable 12345
+```
+
+---
+
+### entity hidefromadventureplayers
+
+Hides an entity from players in Adventure mode.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/entity hidefromadventureplayers [--remove] [entity]` |
+
+**Parameters:**
+- `--remove` (flag) - Remove hiding instead of adding it
+- `entity` (optional) - Entity ID (uses looked-at entity if not specified)
+
+**Examples:**
+```
+/entity hidefromadventureplayers
+/entity hidefromadventureplayers --remove
+/entity hidefromadventureplayers 12345
+```
+
+---
+
+## Additional Chunk Commands
+
+Extended chunk management commands.
+
+### chunk fixheight
+
+Fixes the heightmap for a chunk and recalculates lighting.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/chunk fixheight <x> <z>` |
+
+**Parameters:**
+- `x z` - Chunk coordinates (supports relative coordinates with ~)
+
+**Notes:**
+- Recalculates the chunk heightmap
+- Invalidates and recalculates lighting
+- Useful for fixing lighting glitches
+
+**Examples:**
+```
+/chunk fixheight 0 0
+/chunk fixheight ~ ~
+```
+
+---
+
+### chunk forcetick
+
+Forces all blocks in a chunk to tick.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/chunk forcetick <x> <z>` |
+
+**Parameters:**
+- `x z` - Chunk coordinates (supports relative coordinates with ~)
+
+**Notes:**
+- Sets all blocks in the chunk to ticking state
+- Chunk must be loaded
+
+**Examples:**
+```
+/chunk forcetick 0 0
+/chunk forcetick ~ ~
+```
+
+---
+
+### chunk loaded
+
+Displays loaded chunk information for a player.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/chunk loaded [player]` |
+
+**Parameters:**
+- `player` (optional) - Target player (self if not specified)
+
+**Examples:**
+```
+/chunk loaded
+/chunk loaded PlayerName
+```
+
+---
+
+### chunk resend
+
+Forces resending all chunks to a player.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/chunk resend [--clearcache] [player]` |
+
+**Parameters:**
+- `--clearcache` (flag) - Also invalidate chunk section caches
+- `player` (optional) - Target player (self if not specified)
+
+**Examples:**
+```
+/chunk resend
+/chunk resend --clearcache
+/chunk resend PlayerName
+```
+
+---
+
+### chunk tracker
+
+Displays chunk tracker statistics for a player.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/chunk tracker [player]` |
+
+**Parameters:**
+- `player` (optional) - Target player (self if not specified)
+
+**Information displayed:**
+- Max chunks per second/tick
+- Min/max loaded chunk radius
+- Loaded/loading player chunks
+- World loaded chunks
+
+**Examples:**
+```
+/chunk tracker
+/chunk tracker PlayerName
+```
+
+---
+
+### chunk maxsendrate
+
+Gets or sets chunk sending rate limits.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/chunk maxsendrate [--sec=<value>] [--tick=<value>] [player]` |
+
+**Parameters:**
+- `--sec` (optional) - Maximum chunks per second
+- `--tick` (optional) - Maximum chunks per tick
+- `player` (optional) - Target player (self if not specified)
+
+**Examples:**
+```
+/chunk maxsendrate
+/chunk maxsendrate --sec=50
+/chunk maxsendrate --tick=5
+/chunk maxsendrate --sec=100 --tick=10 PlayerName
+```
+
+---
+
+### chunk marksave
+
+Marks a chunk as needing to be saved.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/chunk marksave <x> <z>` |
+
+**Parameters:**
+- `x z` - Chunk coordinates (supports relative coordinates with ~)
+
+**Notes:**
+- If chunk is not loaded, it will be loaded first
+
+**Examples:**
+```
+/chunk marksave 0 0
+/chunk marksave ~ ~
+```
+
+---
+
+### chunk tint
+
+Sets the tint color for a chunk.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/chunk tint <color> [--blur] [--radius=<value>] [--sigma=<value>]` |
+
+**Parameters:**
+- `color` - Hex color value (e.g., #FF0000)
+- `--blur` (flag) - Apply Gaussian blur to the tint
+- `--radius` (optional) - Blur radius (default: 5)
+- `--sigma` (optional) - Blur sigma value (default: 1.5)
+
+**Usage variants:**
+- `/chunk tint` - Opens the tint color picker UI
+
+**Examples:**
+```
+/chunk tint #FF0000
+/chunk tint #00FF00 --blur
+/chunk tint #0000FF --blur --radius=10 --sigma=2.0
+```
+
+---
+
+## Additional World Map Commands
+
+Extended world map management commands.
+
+### worldmap reload
+
+Reloads the world map configuration.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/worldmap reload` |
+
+**Examples:**
+```
+/worldmap reload
+/map reload
+```
+
+---
+
+### worldmap clearmarkers
+
+Clears all world map markers for the player.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/worldmap clearmarkers` |
+
+**Examples:**
+```
+/worldmap clearmarkers
+/map clearmarkers
+```
+
+---
+
+### worldmap viewradius
+
+Manage world map view radius settings.
+
+| Property | Value |
+|----------|-------|
+| **Syntax** | `/worldmap viewradius <subcommand>` |
+
+**Subcommands:**
+
+| Subcommand | Syntax | Description |
+|------------|--------|-------------|
+| `get` | `/worldmap viewradius get [player]` | Get current view radius |
+| `set` | `/worldmap viewradius set <radius> [--bypass] [player]` | Set view radius override |
+| `remove` | `/worldmap viewradius remove [player]` | Remove view radius override |
+
+**Set parameters:**
+- `radius` - View radius value (max 512 without bypass)
+- `--bypass` (flag) - Allow exceeding maximum limit
+
+**Examples:**
+```
+/worldmap viewradius get
+/worldmap viewradius set 256
+/worldmap viewradius set 1024 --bypass
+/worldmap viewradius remove
+```

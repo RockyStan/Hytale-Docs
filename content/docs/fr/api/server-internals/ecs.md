@@ -1911,3 +1911,852 @@ commandBuffer.removeComponent(ref, DynamicLight.getComponentType());
 - Pour les lumieres persistantes (sauvegardees avec l'entite), utilisez `PersistentDynamicLight` a la place
 - `DynamicLightSystems.Setup` cree automatiquement `DynamicLight` depuis `PersistentDynamicLight` au chargement
 - Les objets tombes emettent automatiquement de la lumiere si l'objet/bloc a une propriete de lumiere (voir `ItemComponent.computeDynamicLight()`)
+
+---
+
+### ItemPhysicsComponent (Deprecie)
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.item`
+
+Le composant `ItemPhysicsComponent` est un composant deprecie qui etait utilise pour stocker les calculs de physique des objets tombes. Il contient la velocite mise a l'echelle et les resultats de collision. Ce composant a ete remplace par des systemes de physique plus recents.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/item/ItemPhysicsComponent.java`
+
+```java
+@Deprecated
+public class ItemPhysicsComponent implements Component<EntityStore> {
+   public Vector3d scaledVelocity = new Vector3d();
+   public CollisionResult collisionResult = new CollisionResult();
+
+   public static ComponentType<EntityStore, ItemPhysicsComponent> getComponentType() {
+      return EntityModule.get().getItemPhysicsComponentType();
+   }
+
+   public ItemPhysicsComponent() {}
+
+   public ItemPhysicsComponent(Vector3d scaledVelocity, CollisionResult collisionResult) {
+      this.scaledVelocity = scaledVelocity;
+      this.collisionResult = collisionResult;
+   }
+
+   @Nonnull
+   @Override
+   public Component<EntityStore> clone() {
+      return new ItemPhysicsComponent(this.scaledVelocity, this.collisionResult);
+   }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `scaledVelocity` | `Vector3d` | Le vecteur de velocite mis a l'echelle pour l'objet |
+| `collisionResult` | `CollisionResult` | Le resultat des calculs de collision |
+
+**Notes d'utilisation:**
+- Ce composant est deprecie et ne devrait pas etre utilise dans le nouveau code
+- Utilisez les composants `Velocity` et `PhysicsValues` a la place pour la physique des objets
+
+---
+
+### PickupItemComponent
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.item`
+
+Le composant `PickupItemComponent` gere l'animation et l'etat lorsqu'un objet est ramasse par une entite. Il gere l'animation de deplacement de la position de l'objet vers l'entite cible sur une duree configurable.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/item/PickupItemComponent.java`
+
+```java
+public class PickupItemComponent implements Component<EntityStore> {
+   public static final float PICKUP_TRAVEL_TIME_DEFAULT = 0.15F;
+   @Nonnull
+   public static final BuilderCodec<PickupItemComponent> CODEC =
+       BuilderCodec.builder(PickupItemComponent.class, PickupItemComponent::new).build();
+
+   private Ref<EntityStore> targetRef;
+   private Vector3d startPosition;
+   private float originalLifeTime;
+   private float lifeTime = 0.15F;
+   private boolean finished = false;
+
+   @Nonnull
+   public static ComponentType<EntityStore, PickupItemComponent> getComponentType() {
+      return EntityModule.get().getPickupItemComponentType();
+   }
+
+   // Constructeurs
+   public PickupItemComponent() {}
+   public PickupItemComponent(@Nonnull Ref<EntityStore> targetRef, @Nonnull Vector3d startPosition);
+   public PickupItemComponent(@Nonnull Ref<EntityStore> targetRef, @Nonnull Vector3d startPosition, float lifeTime);
+
+   // Methodes
+   public boolean hasFinished();
+   public void setFinished(boolean finished);
+   public void decreaseLifetime(float amount);
+   public float getLifeTime();
+   public float getOriginalLifeTime();
+   public void setInitialLifeTime(float lifeTimeS);
+   @Nonnull public Vector3d getStartPosition();
+   @Nonnull public Ref<EntityStore> getTargetRef();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `targetRef` | `Ref<EntityStore>` | null | Reference a l'entite qui ramasse l'objet |
+| `startPosition` | `Vector3d` | null | Position de depart pour l'animation de ramassage |
+| `originalLifeTime` | float | - | Duree originale de l'animation de ramassage |
+| `lifeTime` | float | 0.15 | Temps restant pour l'animation de ramassage (secondes) |
+| `finished` | boolean | false | Si l'animation de ramassage est terminee |
+
+**Comment utiliser:**
+
+```java
+// Initier l'animation de ramassage d'objet
+PickupItemComponent pickup = new PickupItemComponent(
+    playerRef,                          // Entite ramassant l'objet
+    itemPosition,                       // Position de depart
+    0.15f                               // Duree de l'animation en secondes
+);
+commandBuffer.addComponent(itemRef, PickupItemComponent.getComponentType(), pickup);
+
+// Verifier si le ramassage est termine
+PickupItemComponent pickup = store.getComponent(itemRef, PickupItemComponent.getComponentType());
+if (pickup.hasFinished()) {
+    // Supprimer l'objet et l'ajouter a l'inventaire
+}
+```
+
+**Notes d'utilisation:**
+- Le composant est traite par `PickupItemSystem` qui interpole la position de l'objet
+- Le temps de deplacement par defaut est de 0.15 secondes (150ms)
+- Une fois termine, le systeme gere le transfert de l'objet vers l'inventaire de la cible
+
+---
+
+### PreventItemMerging
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.item`
+
+Le composant `PreventItemMerging` est un composant marqueur (tag) qui empeche un objet tombe d'etre fusionne avec d'autres objets identiques a proximite. Utilise le pattern singleton.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/item/PreventItemMerging.java`
+
+```java
+public class PreventItemMerging implements Component<EntityStore> {
+   @Nonnull
+   public static final PreventItemMerging INSTANCE = new PreventItemMerging();
+   @Nonnull
+   public static final BuilderCodec<PreventItemMerging> CODEC =
+       BuilderCodec.builder(PreventItemMerging.class, () -> INSTANCE).build();
+
+   @Nonnull
+   public static ComponentType<EntityStore, PreventItemMerging> getComponentType() {
+      return EntityModule.get().getPreventItemMergingType();
+   }
+
+   private PreventItemMerging() {}
+
+   @Nonnull
+   @Override
+   public Component<EntityStore> clone() {
+      return INSTANCE;
+   }
+}
+```
+
+**Proprietes:**
+- Aucune (composant marqueur)
+
+**Comment ajouter/supprimer:**
+
+```java
+// Empecher un objet de fusionner avec d'autres
+holder.addComponent(PreventItemMerging.getComponentType(), PreventItemMerging.INSTANCE);
+// ou
+commandBuffer.addComponent(itemRef, PreventItemMerging.getComponentType(), PreventItemMerging.INSTANCE);
+
+// Permettre a nouveau la fusion
+commandBuffer.removeComponent(itemRef, PreventItemMerging.getComponentType());
+```
+
+**Notes d'utilisation:**
+- Utile pour les objets de quete, les drops uniques, ou les objets qui doivent rester separes
+- Le `ItemMergeSystem` verifie ce composant avant de tenter de fusionner des objets
+
+---
+
+### PreventPickup
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.item`
+
+Le composant `PreventPickup` est un composant marqueur (tag) qui empeche un objet tombe d'etre ramasse par n'importe quelle entite. Utilise le pattern singleton.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/item/PreventPickup.java`
+
+```java
+public class PreventPickup implements Component<EntityStore> {
+   @Nonnull
+   public static final PreventPickup INSTANCE = new PreventPickup();
+   @Nonnull
+   public static final BuilderCodec<PreventPickup> CODEC =
+       BuilderCodec.builder(PreventPickup.class, () -> INSTANCE).build();
+
+   @Nonnull
+   public static ComponentType<EntityStore, PreventPickup> getComponentType() {
+      return EntityModule.get().getPreventPickupComponentType();
+   }
+
+   private PreventPickup() {}
+
+   @Nonnull
+   @Override
+   public Component<EntityStore> clone() {
+      return INSTANCE;
+   }
+}
+```
+
+**Proprietes:**
+- Aucune (composant marqueur)
+
+**Comment ajouter/supprimer:**
+
+```java
+// Empecher un objet d'etre ramasse
+holder.addComponent(PreventPickup.getComponentType(), PreventPickup.INSTANCE);
+// ou
+commandBuffer.addComponent(itemRef, PreventPickup.getComponentType(), PreventPickup.INSTANCE);
+
+// Permettre a nouveau le ramassage
+commandBuffer.removeComponent(itemRef, PreventPickup.getComponentType());
+```
+
+**Notes d'utilisation:**
+- Utile pour les objets decoratifs, les objets pendant les cinematiques, ou les objets restreints au proprietaire
+- Different de `ItemComponent.pickupDelay` qui est temporaire - celui-ci est permanent jusqu'a suppression
+
+---
+
+### PhysicsValues
+
+**Package:** `com.hypixel.hytale.server.core.modules.physics.component`
+
+Le composant `PhysicsValues` stocke les proprietes physiques d'une entite qui affectent sa reponse a la simulation physique. Cela inclut la masse, le coefficient de trainee et la direction de la gravite.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/physics/component/PhysicsValues.java`
+
+```java
+public class PhysicsValues implements Component<EntityStore> {
+   @Nonnull
+   public static final BuilderCodec<PhysicsValues> CODEC = BuilderCodec.builder(PhysicsValues.class, PhysicsValues::new)
+      .append(new KeyedCodec<>("Mass", Codec.DOUBLE), ...)
+      .addValidator(Validators.greaterThan(ZERO))
+      .append(new KeyedCodec<>("DragCoefficient", Codec.DOUBLE), ...)
+      .addValidator(Validators.greaterThanOrEqual(ZERO))
+      .append(new KeyedCodec<>("InvertedGravity", Codec.BOOLEAN), ...)
+      .build();
+
+   private static final double DEFAULT_MASS = 1.0;
+   private static final double DEFAULT_DRAG_COEFFICIENT = 0.5;
+   private static final boolean DEFAULT_INVERTED_GRAVITY = false;
+
+   protected double mass;
+   protected double dragCoefficient;
+   protected boolean invertedGravity;
+
+   @Nonnull
+   public static ComponentType<EntityStore, PhysicsValues> getComponentType() {
+      return EntityModule.get().getPhysicsValuesComponentType();
+   }
+
+   // Constructeurs
+   public PhysicsValues();  // Utilise les valeurs par defaut
+   public PhysicsValues(@Nonnull PhysicsValues other);  // Constructeur de copie
+   public PhysicsValues(double mass, double dragCoefficient, boolean invertedGravity);
+
+   // Methodes
+   public void replaceValues(@Nonnull PhysicsValues other);
+   public void resetToDefault();
+   public void scale(float scale);
+   public double getMass();
+   public double getDragCoefficient();
+   public boolean isInvertedGravity();
+   @Nonnull public static PhysicsValues getDefault();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `mass` | double | 1.0 | Masse de l'entite (doit etre > 0) |
+| `dragCoefficient` | double | 0.5 | Coefficient de resistance de l'air (doit etre >= 0) |
+| `invertedGravity` | boolean | false | Si la gravite est inversee pour cette entite |
+
+**Comment utiliser:**
+
+```java
+// Creer une entite avec une physique personnalisee
+PhysicsValues physics = new PhysicsValues(2.0, 0.3, false);  // Lourd, faible trainee
+holder.addComponent(PhysicsValues.getComponentType(), physics);
+
+// Creer une entite flottante (gravite inversee)
+PhysicsValues floatingPhysics = new PhysicsValues(0.5, 0.8, true);
+holder.addComponent(PhysicsValues.getComponentType(), floatingPhysics);
+
+// Modifier la physique a l'execution
+PhysicsValues physics = store.getComponent(ref, PhysicsValues.getComponentType());
+physics.scale(2.0f);  // Double la masse et la trainee
+
+// Reinitialiser aux valeurs par defaut
+physics.resetToDefault();
+```
+
+**Notes d'utilisation:**
+- La masse affecte comment les forces (y compris la gravite) accelerent l'entite
+- Un coefficient de trainee plus eleve signifie que l'entite ralentit plus vite dans l'air
+- La gravite inversee fait tomber l'entite vers le haut - utile pour les effets speciaux
+- Utilise automatiquement pour les objets tombes via `ItemComponent.generateItemDrop()`
+
+---
+
+### PlayerSettings
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.player`
+
+Le composant `PlayerSettings` stocke les preferences et parametres du joueur, y compris les emplacements de ramassage d'objets et les parametres du mode creatif. Il est implemente comme un record Java pour l'immutabilite.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/player/PlayerSettings.java`
+
+```java
+public record PlayerSettings(
+   boolean showEntityMarkers,
+   @Nonnull PickupLocation armorItemsPreferredPickupLocation,
+   @Nonnull PickupLocation weaponAndToolItemsPreferredPickupLocation,
+   @Nonnull PickupLocation usableItemsItemsPreferredPickupLocation,
+   @Nonnull PickupLocation solidBlockItemsPreferredPickupLocation,
+   @Nonnull PickupLocation miscItemsPreferredPickupLocation,
+   PlayerCreativeSettings creativeSettings
+) implements Component<EntityStore> {
+
+   @Nonnull
+   public static ComponentType<EntityStore, PlayerSettings> getComponentType() {
+      return EntityModule.get().getPlayerSettingsComponentType();
+   }
+
+   @Nonnull
+   public static PlayerSettings defaults() {
+      return INSTANCE;  // Retourne l'instance par defaut
+   }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `showEntityMarkers` | boolean | false | Afficher les marqueurs d'entites de debug |
+| `armorItemsPreferredPickupLocation` | `PickupLocation` | Hotbar | Ou vont les armures ramassees |
+| `weaponAndToolItemsPreferredPickupLocation` | `PickupLocation` | Hotbar | Ou vont les armes/outils ramasses |
+| `usableItemsItemsPreferredPickupLocation` | `PickupLocation` | Hotbar | Ou vont les consommables ramasses |
+| `solidBlockItemsPreferredPickupLocation` | `PickupLocation` | Hotbar | Ou vont les blocs ramasses |
+| `miscItemsPreferredPickupLocation` | `PickupLocation` | Hotbar | Ou vont les objets divers ramasses |
+| `creativeSettings` | `PlayerCreativeSettings` | - | Parametres specifiques au mode creatif |
+
+**PlayerCreativeSettings:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `allowNPCDetection` | boolean | false | Si les PNJ peuvent detecter/cibler le joueur |
+| `respondToHit` | boolean | false | Si le joueur reagit aux coups recus |
+
+**Comment utiliser:**
+
+```java
+// Obtenir les parametres par defaut
+PlayerSettings settings = PlayerSettings.defaults();
+
+// Creer des parametres personnalises
+PlayerSettings customSettings = new PlayerSettings(
+    true,                       // showEntityMarkers
+    PickupLocation.Inventory,   // armure -> inventaire
+    PickupLocation.Hotbar,      // armes -> hotbar
+    PickupLocation.Inventory,   // consommables -> inventaire
+    PickupLocation.Inventory,   // blocs -> inventaire
+    PickupLocation.Inventory,   // divers -> inventaire
+    new PlayerCreativeSettings(true, false)  // parametres creatif
+);
+commandBuffer.addComponent(playerRef, PlayerSettings.getComponentType(), customSettings);
+```
+
+**Notes d'utilisation:**
+- Les parametres sont generalement envoyes depuis le client et appliques a l'entite joueur
+- PickupLocation determine ou les objets sont places dans l'inventaire du joueur
+- Les parametres creatif controlent le comportement de jeu en mode creatif
+
+---
+
+### ChunkTracker
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.player`
+
+Le composant `ChunkTracker` gere quels chunks sont charges et visibles pour un joueur. Il gere le chargement/dechargement des chunks, le rayon de vue et la limitation du debit de streaming des chunks.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/player/ChunkTracker.java`
+
+```java
+public class ChunkTracker implements Component<EntityStore> {
+   public static final int MAX_CHUNKS_PER_SECOND_LOCAL = 256;
+   public static final int MAX_CHUNKS_PER_SECOND_LAN = 128;
+   public static final int MAX_CHUNKS_PER_SECOND = 36;
+   public static final int MAX_CHUNKS_PER_TICK = 4;
+   public static final int MIN_LOADED_CHUNKS_RADIUS = 2;
+   public static final int MAX_HOT_LOADED_CHUNKS_RADIUS = 8;
+
+   private int chunkViewRadius;
+   private int maxChunksPerSecond;
+   private int maxChunksPerTick;
+   private int minLoadedChunksRadius;
+   private int maxHotLoadedChunksRadius;
+   private int sentViewRadius;
+   private int hotRadius;
+   private int lastChunkX;
+   private int lastChunkZ;
+   private boolean readyForChunks;
+
+   public static ComponentType<EntityStore, ChunkTracker> getComponentType() {
+      return EntityModule.get().getChunkTrackerComponentType();
+   }
+
+   // Methodes principales
+   public void tick(@Nonnull Ref<EntityStore> playerRef, float dt, @Nonnull CommandBuffer<EntityStore> commandBuffer);
+   public void unloadAll(@Nonnull PlayerRef playerRefComponent);
+   public void clear();
+   public boolean isLoaded(long indexChunk);
+   public boolean shouldBeVisible(long chunkCoordinates);
+   public ChunkVisibility getChunkVisibility(long indexChunk);
+   public void setReadyForChunks(boolean readyForChunks);
+   public boolean isReadyForChunks();
+
+   // Configuration
+   public void setMaxChunksPerSecond(int maxChunksPerSecond);
+   public void setDefaultMaxChunksPerSecond(@Nonnull PlayerRef playerRef);
+   public void setMaxChunksPerTick(int maxChunksPerTick);
+   public void setMinLoadedChunksRadius(int minLoadedChunksRadius);
+   public void setMaxHotLoadedChunksRadius(int maxHotLoadedChunksRadius);
+
+   // Statistiques
+   public int getLoadedChunksCount();
+   public int getLoadingChunksCount();
+
+   public enum ChunkVisibility { NONE, HOT, COLD }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `chunkViewRadius` | int | - | Distance de vue du joueur en chunks |
+| `maxChunksPerSecond` | int | 36 (distant) | Maximum de chunks a charger par seconde |
+| `maxChunksPerTick` | int | 4 | Maximum de chunks a charger par tick |
+| `minLoadedChunksRadius` | int | 2 | Rayon minimum de chunks charges |
+| `maxHotLoadedChunksRadius` | int | 8 | Rayon maximum pour les chunks "hot" (actifs) |
+| `sentViewRadius` | int | 0 | Rayon actuel des chunks envoyes |
+| `hotRadius` | int | 0 | Rayon actuel des chunks hot |
+| `readyForChunks` | boolean | false | Si le joueur est pret a recevoir des chunks |
+
+**Enum ChunkVisibility:**
+
+| Valeur | Description |
+|--------|-------------|
+| `NONE` | Le chunk n'est pas visible pour le joueur |
+| `HOT` | Le chunk est visible et activement en tick |
+| `COLD` | Le chunk est visible mais pas en tick |
+
+**Comment utiliser:**
+
+```java
+// Obtenir le chunk tracker d'un joueur
+ChunkTracker tracker = store.getComponent(playerRef, ChunkTracker.getComponentType());
+
+// Verifier si un chunk est charge pour ce joueur
+long chunkIndex = ChunkUtil.indexChunk(chunkX, chunkZ);
+if (tracker.isLoaded(chunkIndex)) {
+    // Le chunk est visible pour le joueur
+}
+
+// Configurer le debit de chargement des chunks
+tracker.setMaxChunksPerSecond(64);
+tracker.setMaxChunksPerTick(8);
+
+// Obtenir la visibilite d'un chunk
+ChunkTracker.ChunkVisibility visibility = tracker.getChunkVisibility(chunkIndex);
+if (visibility == ChunkTracker.ChunkVisibility.HOT) {
+    // Le chunk est activement en tick
+}
+
+// Effacer tous les chunks charges (pour teleportation/changement de monde)
+tracker.clear();
+```
+
+**Notes d'utilisation:**
+- Le chargement des chunks est limite en debit pour eviter la congestion reseau
+- Les connexions locales obtiennent 256 chunks/seconde, LAN obtient 128, distant obtient 36
+- Les chunks "Hot" sont activement en tick ; les chunks "cold" sont visibles mais statiques
+- L'iterateur en spirale assure que les chunks les plus proches du joueur se chargent en premier
+
+---
+
+### ActiveAnimationComponent
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.component`
+
+Le composant `ActiveAnimationComponent` suit quelles animations sont actuellement en cours sur une entite a travers differents slots d'animation. Il permet la synchronisation reseau des etats d'animation.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/component/ActiveAnimationComponent.java`
+
+```java
+public class ActiveAnimationComponent implements Component<EntityStore> {
+   private final String[] activeAnimations = new String[AnimationSlot.VALUES.length];
+   private boolean isNetworkOutdated = false;
+
+   public static ComponentType<EntityStore, ActiveAnimationComponent> getComponentType() {
+      return EntityModule.get().getActiveAnimationComponentType();
+   }
+
+   public ActiveAnimationComponent() {}
+   public ActiveAnimationComponent(String[] activeAnimations);
+
+   public String[] getActiveAnimations();
+   public void setPlayingAnimation(AnimationSlot slot, @Nullable String animation);
+   public boolean consumeNetworkOutdated();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `activeAnimations` | `String[]` | Tableau de noms d'animations indexe par AnimationSlot |
+| `isNetworkOutdated` | boolean | Drapeau pour la synchronisation reseau |
+
+**Comment utiliser:**
+
+```java
+// Creer une entite avec un composant d'animation
+holder.addComponent(ActiveAnimationComponent.getComponentType(), new ActiveAnimationComponent());
+
+// Definir une animation sur un slot specifique
+ActiveAnimationComponent anim = store.getComponent(ref, ActiveAnimationComponent.getComponentType());
+anim.setPlayingAnimation(AnimationSlot.PRIMARY, "walk");
+anim.setPlayingAnimation(AnimationSlot.SECONDARY, "wave");
+
+// Effacer une animation
+anim.setPlayingAnimation(AnimationSlot.PRIMARY, null);
+
+// Obtenir toutes les animations actives
+String[] animations = anim.getActiveAnimations();
+```
+
+**Notes d'utilisation:**
+- Les slots d'animation permettent a plusieurs animations de jouer simultanement (ex: marcher + saluer)
+- Les changements d'animation sont automatiquement synchronises aux clients lorsque marques comme obsoletes
+- Les valeurs d'animation null indiquent qu'aucune animation ne joue sur ce slot
+
+---
+
+### MovementAudioComponent
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.component`
+
+Le composant `MovementAudioComponent` gere le retour audio pour le mouvement des entites, y compris les sons de pas et les sons de mouvement dans les blocs (comme marcher dans l'eau ou l'herbe).
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/component/MovementAudioComponent.java`
+
+```java
+public class MovementAudioComponent implements Component<EntityStore> {
+   public static float NO_REPEAT = -1.0F;
+
+   private final ShouldHearPredicate shouldHearPredicate = new ShouldHearPredicate();
+   private int lastInsideBlockTypeId = 0;
+   private float nextMoveInRepeat = NO_REPEAT;
+
+   public static ComponentType<EntityStore, MovementAudioComponent> getComponentType() {
+      return EntityModule.get().getMovementAudioComponentType();
+   }
+
+   @Nonnull
+   public ShouldHearPredicate getShouldHearPredicate(Ref<EntityStore> ref);
+   public int getLastInsideBlockTypeId();
+   public void setLastInsideBlockTypeId(int lastInsideBlockTypeId);
+   public boolean canMoveInRepeat();
+   public boolean tickMoveInRepeat(float dt);
+   public void setNextMoveInRepeat(float nextMoveInRepeat);
+
+   public static class ShouldHearPredicate implements Predicate<Ref<EntityStore>> {
+      // Filtre le proprietaire pour qu'il n'entende pas ses propres sons
+   }
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `lastInsideBlockTypeId` | int | 0 | ID du type de bloc dans lequel l'entite se trouve |
+| `nextMoveInRepeat` | float | -1.0 | Timer pour les sons de mouvement repetitifs |
+
+**Comment utiliser:**
+
+```java
+// Ajouter l'audio de mouvement a une entite
+holder.addComponent(MovementAudioComponent.getComponentType(), new MovementAudioComponent());
+
+// Mettre a jour le bloc dans lequel l'entite se trouve
+MovementAudioComponent audio = store.getComponent(ref, MovementAudioComponent.getComponentType());
+audio.setLastInsideBlockTypeId(waterBlockTypeId);
+
+// Configurer un son repetitif (ex: eclaboussures dans l'eau)
+audio.setNextMoveInRepeat(0.5f);  // Repeter toutes les 0.5 secondes
+
+// Verifier s'il est temps de jouer le son a nouveau
+if (audio.canMoveInRepeat() && audio.tickMoveInRepeat(deltaTime)) {
+    // Jouer le son de mouvement
+    audio.setNextMoveInRepeat(0.5f);  // Reinitialiser le timer
+}
+```
+
+**Notes d'utilisation:**
+- Le `ShouldHearPredicate` empeche les entites d'entendre leurs propres sons de mouvement
+- Utilise pour les sons ambiants comme marcher dans l'eau, les hautes herbes, etc.
+- Definir `nextMoveInRepeat` a `NO_REPEAT` (-1.0) pour desactiver les sons repetitifs
+
+---
+
+### RespondToHit
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.component`
+
+Le composant `RespondToHit` est un composant marqueur (tag) qui indique qu'une entite devrait reagir aux coups avec un retour visuel/audio. Utilise le pattern singleton.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/component/RespondToHit.java`
+
+```java
+public class RespondToHit implements Component<EntityStore> {
+   public static final RespondToHit INSTANCE = new RespondToHit();
+   public static final BuilderCodec<RespondToHit> CODEC =
+       BuilderCodec.builder(RespondToHit.class, () -> INSTANCE).build();
+
+   public static ComponentType<EntityStore, RespondToHit> getComponentType() {
+      return EntityModule.get().getRespondToHitComponentType();
+   }
+
+   private RespondToHit() {}
+
+   @Override
+   public Component<EntityStore> clone() {
+      return INSTANCE;
+   }
+}
+```
+
+**Proprietes:**
+- Aucune (composant marqueur)
+
+**Comment ajouter/supprimer:**
+
+```java
+// Faire reagir l'entite aux coups (montrer le retour de degats)
+holder.addComponent(RespondToHit.getComponentType(), RespondToHit.INSTANCE);
+// ou
+commandBuffer.addComponent(ref, RespondToHit.getComponentType(), RespondToHit.INSTANCE);
+
+// Desactiver la reponse aux coups
+commandBuffer.removeComponent(ref, RespondToHit.getComponentType());
+
+// Verifier si l'entite reagit aux coups
+Archetype<EntityStore> archetype = store.getArchetype(ref);
+boolean respondsToHit = archetype.contains(RespondToHit.getComponentType());
+```
+
+**Notes d'utilisation:**
+- Utilise pour activer les animations, sons et effets de retour de coup
+- Lie a `PlayerCreativeSettings.respondToHit` pour les parametres specifiques au joueur
+- Les entites sans ce composant peuvent quand meme subir des degats mais ne montreront pas de retour
+
+---
+
+### RotateObjectComponent
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.component`
+
+Le composant `RotateObjectComponent` fait qu'une entite tourne continuellement autour de son axe Y. Utile pour les objets d'affichage, les objets decoratifs ou les collectibles.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/component/RotateObjectComponent.java`
+
+```java
+public class RotateObjectComponent implements Component<EntityStore> {
+   @Nonnull
+   public static final BuilderCodec<RotateObjectComponent> CODEC =
+       BuilderCodec.builder(RotateObjectComponent.class, RotateObjectComponent::new)
+          .append(new KeyedCodec<>("RotationSpeed", Codec.FLOAT), ...)
+          .build();
+
+   private float rotationSpeed;
+
+   @Nonnull
+   public static ComponentType<EntityStore, RotateObjectComponent> getComponentType() {
+      return EntityModule.get().getRotateObjectComponentType();
+   }
+
+   public RotateObjectComponent() {}
+   public RotateObjectComponent(float rotationSpeed);
+
+   public void setRotationSpeed(float rotationSpeed);
+   public float getRotationSpeed();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Defaut | Description |
+|-----------|------|--------|-------------|
+| `rotationSpeed` | float | 0.0 | Vitesse de rotation en degres par seconde |
+
+**Comment utiliser:**
+
+```java
+// Creer un objet d'affichage tournant lentement
+RotateObjectComponent rotate = new RotateObjectComponent(45.0f);  // 45 deg/sec
+holder.addComponent(RotateObjectComponent.getComponentType(), rotate);
+
+// Creer un collectible tournant rapidement
+holder.addComponent(RotateObjectComponent.getComponentType(),
+    new RotateObjectComponent(180.0f));  // Demi-rotation par seconde
+
+// Modifier la vitesse de rotation a l'execution
+RotateObjectComponent rotate = store.getComponent(ref, RotateObjectComponent.getComponentType());
+rotate.setRotationSpeed(90.0f);
+
+// Arreter la rotation
+rotate.setRotationSpeed(0.0f);
+// ou supprimer le composant
+commandBuffer.removeComponent(ref, RotateObjectComponent.getComponentType());
+```
+
+**Notes d'utilisation:**
+- Les valeurs positives tournent dans le sens anti-horaire (vu du dessus)
+- Les valeurs negatives tournent dans le sens horaire
+- Couramment utilise pour les objets tombes pour les rendre plus visibles
+- La rotation reelle est appliquee par un systeme qui met a jour `TransformComponent`
+
+---
+
+### FromPrefab
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.component`
+
+Le composant `FromPrefab` est un composant marqueur (tag) qui indique qu'une entite a ete generee a partir d'une definition de prefab. Utilise le pattern singleton.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/component/FromPrefab.java`
+
+```java
+public class FromPrefab implements Component<EntityStore> {
+   public static final FromPrefab INSTANCE = new FromPrefab();
+   public static final BuilderCodec<FromPrefab> CODEC =
+       BuilderCodec.builder(FromPrefab.class, () -> INSTANCE).build();
+
+   public static ComponentType<EntityStore, FromPrefab> getComponentType() {
+      return EntityModule.get().getFromPrefabComponentType();
+   }
+
+   private FromPrefab() {}
+
+   @Override
+   public Component<EntityStore> clone() {
+      return INSTANCE;
+   }
+}
+```
+
+**Proprietes:**
+- Aucune (composant marqueur)
+
+**Comment ajouter/supprimer:**
+
+```java
+// Marquer l'entite comme generee depuis un prefab
+holder.addComponent(FromPrefab.getComponentType(), FromPrefab.INSTANCE);
+
+// Verifier si l'entite vient d'un prefab
+Archetype<EntityStore> archetype = store.getArchetype(ref);
+boolean isFromPrefab = archetype.contains(FromPrefab.getComponentType());
+```
+
+**Notes d'utilisation:**
+- Utilise pour distinguer les entites generees depuis des prefabs vs. creees dynamiquement
+- Aide a la gestion et au nettoyage des entites
+- Les entites prefab peuvent avoir une serialisation ou un comportement de reapparition special
+
+---
+
+### FromWorldGen
+
+**Package:** `com.hypixel.hytale.server.core.modules.entity.component`
+
+Le composant `FromWorldGen` marque une entite comme etant generee par le systeme de generation du monde. Il stocke l'ID de generation du monde pour suivre quel systeme de world gen l'a cree.
+
+**Fichier source:** `server-analyzer/decompiled/com/hypixel/hytale/server/core/modules/entity/component/FromWorldGen.java`
+
+```java
+public class FromWorldGen implements Component<EntityStore> {
+   public static final BuilderCodec<FromWorldGen> CODEC =
+       BuilderCodec.builder(FromWorldGen.class, FromWorldGen::new)
+          .append(new KeyedCodec<>("WorldGenId", Codec.INTEGER), ...)
+          .build();
+
+   private int worldGenId;
+
+   public static ComponentType<EntityStore, FromWorldGen> getComponentType() {
+      return EntityModule.get().getFromWorldGenComponentType();
+   }
+
+   private FromWorldGen() {}
+   public FromWorldGen(int worldGenId);
+
+   public int getWorldGenId();
+}
+```
+
+**Proprietes:**
+
+| Propriete | Type | Description |
+|-----------|------|-------------|
+| `worldGenId` | int | ID du systeme de generation du monde qui a cree cette entite |
+
+**Comment utiliser:**
+
+```java
+// Marquer l'entite comme generee par world gen
+FromWorldGen worldGen = new FromWorldGen(generatorId);
+holder.addComponent(FromWorldGen.getComponentType(), worldGen);
+
+// Verifier si l'entite a ete generee
+FromWorldGen worldGen = store.getComponent(ref, FromWorldGen.getComponentType());
+if (worldGen != null) {
+    int generatorId = worldGen.getWorldGenId();
+    // Gerer l'entite generee par le monde
+}
+```
+
+**Notes d'utilisation:**
+- Utilise pour les entites comme les creatures apparaissant naturellement, les structures ou les decorations
+- Le `worldGenId` peut etre utilise pour identifier quel generateur a cree l'entite
+- Aide a eviter de re-generer des entites qui ont deja ete apparues
+- Lie au composant `WorldGenId` qui suit l'etat de generation au niveau du chunk

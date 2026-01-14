@@ -114,6 +114,9 @@ export const sidebarConfig: SidebarItem[] = [
           { titleKey: "accessControl", href: "/docs/modding/plugins/access-control" },
           { titleKey: "damageSystem", href: "/docs/modding/plugins/damage-system" },
           { titleKey: "interactions", href: "/docs/modding/plugins/interactions" },
+          { titleKey: "timeSystem", href: "/docs/modding/plugins/time-system" },
+          { titleKey: "projectiles", href: "/docs/modding/plugins/projectiles" },
+          { titleKey: "blockHealth", href: "/docs/modding/plugins/block-health" },
           {
             titleKey: "events",
             items: [
