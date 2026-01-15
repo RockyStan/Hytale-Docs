@@ -17,6 +17,7 @@ A curated list of helpful resources for Hytale development.
 | Hytale Official | [hytale.com](https://hytale.com) | Official website |
 | Modding Blog | [Modding Strategy](https://hytale.com/news/2025/11/hytale-modding-strategy-and-status) | Official modding info |
 | Support | [support.hytale.com](https://support.hytale.com) | Official support |
+| Modding Docs | [support.curseforge.com](https://support.curseforge.com/en/support/solutions/folders/9000202192) | Offical modding guide |
 
 ## Community Sites
 
