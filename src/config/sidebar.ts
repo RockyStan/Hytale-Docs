@@ -119,15 +119,15 @@ export const sidebarConfig: SidebarItem[] = [
               {
                 titleKey: "playerEvents",
                 items: [
-                  { titleKey: "playerConnectEvent", href: "/docs/modding/plugins/events/player/player-connect-event" },
+                  { titleKey: "playerConnectEvent", href: "/docs/modding/plugins/events/player/player-connect-event", verified: true },
                   { titleKey: "playerDisconnectEvent", href: "/docs/modding/plugins/events/player/player-disconnect-event" },
-                  { titleKey: "playerChatEvent", href: "/docs/modding/plugins/events/player/player-chat-event" },
+                  { titleKey: "playerChatEvent", href: "/docs/modding/plugins/events/player/player-chat-event", verified: true },
                   { titleKey: "playerSetupConnectEvent", href: "/docs/modding/plugins/events/player/player-setup-connect-event" },
                   { titleKey: "playerSetupDisconnectEvent", href: "/docs/modding/plugins/events/player/player-setup-disconnect-event" },
-                  { titleKey: "playerReadyEvent", href: "/docs/modding/plugins/events/player/player-ready-event" },
+                  { titleKey: "playerReadyEvent", href: "/docs/modding/plugins/events/player/player-ready-event", verified: true },
                   { titleKey: "playerMouseButtonEvent", href: "/docs/modding/plugins/events/player/player-mouse-button-event" },
                   { titleKey: "playerMouseMotionEvent", href: "/docs/modding/plugins/events/player/player-mouse-motion-event" },
-                  { titleKey: "addPlayerToWorldEvent", href: "/docs/modding/plugins/events/player/add-player-to-world-event" },
+                  { titleKey: "addPlayerToWorldEvent", href: "/docs/modding/plugins/events/player/add-player-to-world-event", verified: true },
                   { titleKey: "drainPlayerFromWorldEvent", href: "/docs/modding/plugins/events/player/drain-player-from-world-event" },
                   { titleKey: "playerInteractEvent", href: "/docs/modding/plugins/events/player/player-interact-event" },
                   { titleKey: "playerCraftEvent", href: "/docs/modding/plugins/events/player/player-craft-event" },
@@ -137,18 +137,18 @@ export const sidebarConfig: SidebarItem[] = [
               {
                 titleKey: "blockEvents",
                 items: [
-                  { titleKey: "breakBlockEvent", href: "/docs/modding/plugins/events/block/break-block-event" },
-                  { titleKey: "placeBlockEvent", href: "/docs/modding/plugins/events/block/place-block-event" },
-                  { titleKey: "damageBlockEvent", href: "/docs/modding/plugins/events/block/damage-block-event" },
+                  { titleKey: "breakBlockEvent", href: "/docs/modding/plugins/events/block/break-block-event", verified: true },
+                  { titleKey: "placeBlockEvent", href: "/docs/modding/plugins/events/block/place-block-event", verified: true },
+                  { titleKey: "damageBlockEvent", href: "/docs/modding/plugins/events/block/damage-block-event", verified: true },
                   { titleKey: "useBlockEvent", href: "/docs/modding/plugins/events/block/use-block-event" },
                 ],
               },
               {
                 titleKey: "worldEvents",
                 items: [
-                  { titleKey: "addWorldEvent", href: "/docs/modding/plugins/events/world/add-world-event" },
+                  { titleKey: "addWorldEvent", href: "/docs/modding/plugins/events/world/add-world-event", verified: true },
                   { titleKey: "removeWorldEvent", href: "/docs/modding/plugins/events/world/remove-world-event" },
-                  { titleKey: "startWorldEvent", href: "/docs/modding/plugins/events/world/start-world-event" },
+                  { titleKey: "startWorldEvent", href: "/docs/modding/plugins/events/world/start-world-event", verified: true },
                   { titleKey: "allWorldsLoadedEvent", href: "/docs/modding/plugins/events/world/all-worlds-loaded-event" },
                   { titleKey: "moonPhaseChangeEvent", href: "/docs/modding/plugins/events/world/moon-phase-change-event" },
                   { titleKey: "worldPathChangedEvent", href: "/docs/modding/plugins/events/world/world-path-changed-event" },
@@ -182,16 +182,16 @@ export const sidebarConfig: SidebarItem[] = [
                 items: [
                   { titleKey: "playerPermissionChangeEvent", href: "/docs/modding/plugins/events/permission/player-permission-change-event" },
                   { titleKey: "groupPermissionChangeEvent", href: "/docs/modding/plugins/events/permission/group-permission-change-event" },
-                  { titleKey: "playerGroupEvent", href: "/docs/modding/plugins/events/permission/player-group-event" },
+                  { titleKey: "playerGroupEvent", href: "/docs/modding/plugins/events/permission/player-group-event", verified: true },
                 ],
               },
               {
                 titleKey: "inventoryEvents",
                 items: [
-                  { titleKey: "dropItemEvent", href: "/docs/modding/plugins/events/inventory/drop-item-event" },
+                  { titleKey: "dropItemEvent", href: "/docs/modding/plugins/events/inventory/drop-item-event", verified: true },
                   { titleKey: "switchActiveSlotEvent", href: "/docs/modding/plugins/events/inventory/switch-active-slot-event" },
-                  { titleKey: "interactivelyPickupItemEvent", href: "/docs/modding/plugins/events/inventory/interactively-pickup-item-event" },
-                  { titleKey: "craftRecipeEvent", href: "/docs/modding/plugins/events/inventory/craft-recipe-event" },
+                  { titleKey: "interactivelyPickupItemEvent", href: "/docs/modding/plugins/events/inventory/interactively-pickup-item-event", verified: true },
+                  { titleKey: "craftRecipeEvent", href: "/docs/modding/plugins/events/inventory/craft-recipe-event", verified: true },
                 ],
               },
               {
@@ -279,7 +279,7 @@ export const sidebarConfig: SidebarItem[] = [
         titleKey: "serverInternals",
         items: [
           { titleKey: "serverInternalsOverview", href: "/docs/api/server-internals" },
-          { titleKey: "pluginSystem", href: "/docs/api/server-internals/plugins" },
+          { titleKey: "pluginSystem", href: "/docs/api/server-internals/plugins", verified: true },
           {
             titleKey: "modules",
             items: [
@@ -302,11 +302,11 @@ export const sidebarConfig: SidebarItem[] = [
               { titleKey: "npcSystem", href: "/docs/api/server-internals/modules/npc-system" },
             ],
           },
-          { titleKey: "eventSystem", href: "/docs/api/server-internals/events" },
-          { titleKey: "commandSystem", href: "/docs/api/server-internals/commands" },
-          { titleKey: "ecsSystem", href: "/docs/api/server-internals/ecs" },
-          { titleKey: "dataTypes", href: "/docs/api/server-internals/types" },
-          { titleKey: "networkPackets", href: "/docs/api/server-internals/packets" },
+          { titleKey: "eventSystem", href: "/docs/api/server-internals/events", verified: true },
+          { titleKey: "commandSystem", href: "/docs/api/server-internals/commands", verified: true },
+          { titleKey: "ecsSystem", href: "/docs/api/server-internals/ecs", verified: true },
+          { titleKey: "dataTypes", href: "/docs/api/server-internals/types", verified: true },
+          { titleKey: "networkPackets", href: "/docs/api/server-internals/packets", verified: true },
           { titleKey: "customUI", href: "/docs/api/server-internals/custom-ui", verified: true },
         ],
       },
