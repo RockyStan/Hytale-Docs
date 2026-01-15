@@ -137,21 +137,21 @@ const schemas: Record<SchemaType, { required: string[]; knownFields: string[]; t
     strict: false, // ECS-based, very flexible
   },
   manifest: {
-    required: ["id", "name", "version", "main", "api_version"],
-    knownFields: ["id", "name", "version", "main", "api_version", "description", "authors", "dependencies", "load_order", "permissions"],
+    required: ["Group", "Name", "Version", "Main"],
+    knownFields: ["Group", "Name", "Version", "Description", "Authors", "Main", "IncludesAssetPack", "Dependencies", "LoadOrder", "Permissions"],
     types: {
-      id: "string",
-      name: "string",
-      version: "string",
-      main: "string",
-      api_version: "string",
-      description: "string",
-      authors: "array",
-      dependencies: "object",
-      load_order: "string",
-      permissions: "object",
+      Group: "string",
+      Name: "string",
+      Version: "string",
+      Description: "string",
+      Authors: "array",
+      Main: "string",
+      IncludesAssetPack: "boolean",
+      Dependencies: "array",
+      LoadOrder: "string",
+      Permissions: "object",
     },
-    strict: true, // Plugin manifests have strict requirements
+    strict: true,
   },
 };
 
@@ -203,18 +203,13 @@ const exampleJson: Record<SchemaType, string> = {
   }
 }`,
   manifest: `{
-  "id": "my-plugin",
-  "name": "My Awesome Plugin",
-  "version": "1.0.0",
-  "description": "A description of what this plugin does",
-  "authors": ["YourName"],
-  "main": "com.example.myplugin.MyPlugin",
-  "api_version": "1.0",
-  "dependencies": {
-    "required": [],
-    "optional": []
-  },
-  "load_order": "POSTWORLD"
+  "Group": "com.example",
+  "Name": "MyPlugin",
+  "Version": "1.0.0",
+  "Description": "A description of what this plugin does",
+  "Authors": [{ "Name": "YourName" }],
+  "Main": "com.example.myplugin.MyPlugin",
+  "IncludesAssetPack": false
 }`,
 };
 
@@ -301,23 +296,23 @@ function validateJson(json: string, schemaType: SchemaType): ValidationResult {
 
   // Manifest-specific validations
   if (schemaType === "manifest") {
-    const version = parsed.version as string;
+    const version = parsed.Version as string;
     if (version && typeof version === "string") {
       if (!/^\d+\.\d+\.\d+/.test(version)) {
         warnings.push(`Version "${version}" should follow semantic versioning (e.g., 1.0.0)`);
       }
     }
 
-    const main = parsed.main as string;
+    const main = parsed.Main as string;
     if (main && typeof main === "string") {
       if (!main.includes(".")) {
         errors.push(`Main class "${main}" should be a fully qualified class name (e.g., com.example.MyPlugin)`);
       }
     }
 
-    const loadOrder = parsed.load_order as string;
+    const loadOrder = parsed.LoadOrder as string;
     if (loadOrder && !["STARTUP", "POSTWORLD"].includes(loadOrder)) {
-      errors.push(`load_order must be "STARTUP" or "POSTWORLD", got "${loadOrder}"`);
+      errors.push(`LoadOrder must be "STARTUP" or "POSTWORLD", got "${loadOrder}"`);
     }
   }
 
