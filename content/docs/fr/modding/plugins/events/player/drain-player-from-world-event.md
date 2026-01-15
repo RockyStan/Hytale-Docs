@@ -6,7 +6,11 @@ sidebar_label: DrainPlayerFromWorldEvent
 
 # DrainPlayerFromWorldEvent
 
-Déclenché lorsqu'un joueur est en cours de retrait d'un monde. Cet événement permet aux plugins de modifier le monde de destination du joueur et sa transformation (position/rotation) quand il quitte le monde actuel.
+:::warning Important - Conditions de déclenchement (Vérifié)
+Cet événement est **UNIQUEMENT** déclenché lorsqu'un monde est **SUPPRIMÉ/ARRÊTÉ** et que les joueurs sont "drainés" vers le monde par défaut. La téléportation normale entre mondes avec le composant `Teleport` ne déclenche **PAS** cet événement.
+:::
+
+Déclenché lorsqu'un joueur est forcé de quitter un monde parce que celui-ci est en cours d'arrêt. Cet événement permet aux plugins de modifier le monde de destination du joueur et sa transformation (position/rotation) quand il est drainé vers un autre monde.
 
 ## Informations sur l'événement
 
@@ -16,6 +20,7 @@ Déclenché lorsqu'un joueur est en cours de retrait d'un monde. Cet événement
 | **Classe parente** | `IEvent<String>` |
 | **Annulable** | Non |
 | **Asynchrone** | Non |
+| **Vérifié** | ✅ Oui - Testé avec le plugin doc-test |
 | **Fichier source** | `decompiled/com/hypixel/hytale/server/core/event/events/player/DrainPlayerFromWorldEvent.java:10` |
 
 ## Declaration
@@ -124,13 +129,12 @@ eventBus.register(EventPriority.LATE, DrainPlayerFromWorldEvent.class, event -> 
 
 ## Cas d'utilisation courants
 
-- Sauvegarde de la progression specifique au monde avant de partir
-- Redirection des joueurs vers des destinations specifiques
-- Gestion des sorties de mini-jeux ou donjons
-- Nettoyage des donnees et ressources specifiques au monde
-- Suivi des changements de population des mondes
-- Logique personnalisee de teleportation et points d'apparition
-- Gestion des groupes ou equipes basees sur les mondes
+- **Sauvegarde d'urgence des données** quand un monde est arrêté
+- **Redirection des joueurs** vers un monde/emplacement spécifique quand leur monde est supprimé
+- **Nettoyage de monde de mini-jeu** quand le mini-jeu se termine et que le monde est détruit
+- **Donjons instanciés** où le monde du donjon est supprimé après complétion
+- **Maintenance serveur** - sauvegarde des données joueur quand les mondes sont arrêtés
+- **Nettoyage des ressources** - suppression des données spécifiques au monde retiré
 
 ## Événements lies
 
@@ -138,28 +142,55 @@ eventBus.register(EventPriority.LATE, DrainPlayerFromWorldEvent.class, event -> 
 - [PlayerDisconnectEvent](./player-disconnect-event.md) - Déclenché quand le joueur se deconnecte
 - [RemoveWorldEvent](../world/remove-world-event.md) - Déclenché quand un monde est supprime
 
-## Ordre des événements
+## Quand cet événement est déclenché
 
-Quand un joueur est transfere entre mondes :
+:::info Comportement vérifié
+Cet événement est **UNIQUEMENT** déclenché dans le scénario suivant :
+:::
 
-1. **DrainPlayerFromWorldEvent** - Joueur retire de l'ancien monde (cet événement)
-2. **AddPlayerToWorldEvent** - Joueur ajoute au nouveau monde
+**Lorsqu'un monde est supprimé/arrêté :**
 
-Quand un joueur se deconnecte :
+1. **Suppression du monde initiée** via `Universe.get().removeWorld(worldName)`
+2. **World.drainPlayersTo()** est appelé en interne
+3. **DrainPlayerFromWorldEvent** - Déclenché pour chaque joueur drainé
+4. **AddPlayerToWorldEvent** - Joueur ajouté au monde par défaut
 
-1. **DrainPlayerFromWorldEvent** - Joueur retire de son monde actuel
-2. **PlayerDisconnectEvent** - Joueur completement deconnecte
+## Quand cet événement n'est PAS déclenché
+
+- Téléportation normale entre mondes (avec le composant `Teleport`)
+- Déconnexion/reconnexion du joueur
+- Commandes `/warp` ou de téléportation similaires
+
+Pour les transferts de monde normaux, seul `AddPlayerToWorldEvent` est déclenché quand le joueur entre dans le nouveau monde.
+
+## Comment tester cet événement
+
+Pour déclencher `DrainPlayerFromWorldEvent` lors des tests :
+
+1. Créez un monde secondaire (non par défaut)
+2. Téléportez un joueur vers ce monde
+3. Supprimez le monde avec `Universe.get().removeWorld(worldName)`
+4. Le joueur sera "drainé" vers le monde par défaut et cet événement se déclenchera
+
+```java
+// Exemple : Déclencher DrainPlayerFromWorldEvent en supprimant un monde
+World worldToRemove = Universe.get().getWorld("mon-monde-temp");
+if (worldToRemove != null) {
+    boolean removed = Universe.get().removeWorld("mon-monde-temp");
+    // DrainPlayerFromWorldEvent se déclenche pour chaque joueur dans ce monde
+}
+```
 
 ## Notes
 
-Cet événement ne peut pas etre annule, mais vous pouvez controler ou le joueur va en utilisant `setWorld()` et `setTransform()`. La destination peut etre :
-- Un autre monde sur le serveur
-- Une position specifique dans le nouveau monde
-- Un point d'apparition base sur une logique personnalisee
+Cet événement ne peut pas être annulé, mais vous pouvez contrôler où le joueur va en utilisant `setWorld()` et `setTransform()`. La destination peut être :
+- Un autre monde sur le serveur (s'il n'est pas en cours de suppression)
+- Une position spécifique dans le monde de destination
+- Un point d'apparition basé sur une logique personnalisée
 
-La `transform` inclut les donnees de position et de rotation, vous permettant de controler exactement ou et comment le joueur apparait a sa destination.
+La `transform` inclut les données de position et de rotation, vous permettant de contrôler exactement où et comment le joueur apparaît à sa destination.
 
-Si le joueur se deconnecte plutot que de transferer de monde, le monde et la transformation peuvent etre definis pour gerer ou le joueur apparaitra s'il se reconnecte.
+Cet événement est spécifiquement conçu pour les scénarios d'arrêt de monde, permettant aux plugins de sauvegarder des données et de rediriger les joueurs de manière appropriée lorsqu'un monde est retiré du serveur.
 
 ## Référence source
 

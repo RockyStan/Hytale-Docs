@@ -389,14 +389,14 @@ public class EntityUIPlugin extends JavaPlugin {
 
     @Override
     protected void setup() {
-        // Listen for entity spawn events
-        getEventRegistry().register(EntitySpawnEvent.class, this::onEntitySpawn);
+        // Listen for when players are added to a world
+        getEventRegistry().register(AddPlayerToWorldEvent.class, this::onPlayerAddedToWorld);
     }
 
-    private void onEntitySpawn(EntitySpawnEvent event) {
+    private void onPlayerAddedToWorld(AddPlayerToWorldEvent event) {
         World world = event.getWorld();
         Store<EntityStore> store = world.getEntityStore().getStore();
-        Ref<EntityStore> entityRef = event.getEntityRef();
+        Ref<EntityStore> entityRef = event.getHolder();
 
         // Get the entity's UI component list
         UIComponentList uiList = store.getComponent(entityRef, UIComponentList.getComponentType());
@@ -405,7 +405,7 @@ public class EntityUIPlugin extends JavaPlugin {
             // Get current component IDs
             int[] componentIds = uiList.getComponentIds();
 
-            getLogger().info("Entity spawned with " + componentIds.length + " UI components");
+            getLogger().info("Player added to world with " + componentIds.length + " UI components");
         }
     }
 

@@ -6,7 +6,11 @@ sidebar_label: DrainPlayerFromWorldEvent
 
 # DrainPlayerFromWorldEvent
 
-Fired when a player is being removed from a world. This event allows plugins to modify the player's destination world and transform (position/rotation) when they leave the current world.
+:::warning Important - Trigger Conditions (Verified)
+This event is **ONLY** triggered when a world is **REMOVED/STOPPED** and players are "drained" to the default world. Regular teleportation between worlds using the `Teleport` component does **NOT** trigger this event.
+:::
+
+Fired when a player is being forcibly removed from a world because the world is being shut down. This event allows plugins to modify the player's destination world and transform (position/rotation) when they are drained to another world.
 
 ## Event Information
 
@@ -16,6 +20,7 @@ Fired when a player is being removed from a world. This event allows plugins to 
 | **Parent Class** | `IEvent<String>` |
 | **Cancellable** | No |
 | **Async** | No |
+| **Verified** | ✅ Yes - Tested with doc-test plugin |
 | **Source File** | `decompiled/com/hypixel/hytale/server/core/event/events/player/DrainPlayerFromWorldEvent.java:10` |
 
 ## Declaration
@@ -124,13 +129,12 @@ eventBus.register(EventPriority.LATE, DrainPlayerFromWorldEvent.class, event -> 
 
 ## Common Use Cases
 
-- Saving world-specific progress before leaving
-- Redirecting players to specific destinations
-- Handling minigame or dungeon exits
-- Cleaning up world-specific data and resources
-- Tracking world population changes
-- Custom teleportation and spawn point logic
-- Managing world-based parties or teams
+- **Emergency data saving** when a world is being shut down
+- **Redirecting players** to a specific world/location when their world is removed
+- **Handling minigame world cleanup** when the minigame ends and the world is destroyed
+- **Instance-based dungeons** where the dungeon world is removed after completion
+- **Server maintenance** - saving player data when worlds are being stopped
+- **Resource cleanup** - removing world-specific data tied to the removed world
 
 ## Related Events
 
@@ -138,28 +142,55 @@ eventBus.register(EventPriority.LATE, DrainPlayerFromWorldEvent.class, event -> 
 - [PlayerDisconnectEvent](./player-disconnect-event.md) - Fired when player disconnects
 - [RemoveWorldEvent](../world/remove-world-event.md) - Fired when a world is removed
 
-## Event Order
+## When This Event is Triggered
 
-When a player transfers between worlds:
+:::info Verified Behavior
+This event is **ONLY** triggered in the following scenario:
+:::
 
-1. **DrainPlayerFromWorldEvent** - Player removed from old world (this event)
-2. **AddPlayerToWorldEvent** - Player added to new world
+**When a world is removed/stopped:**
 
-When a player disconnects:
+1. **World removal initiated** via `Universe.get().removeWorld(worldName)`
+2. **World.drainPlayersTo()** is called internally
+3. **DrainPlayerFromWorldEvent** - Fired for each player being drained
+4. **AddPlayerToWorldEvent** - Player added to the default world
 
-1. **DrainPlayerFromWorldEvent** - Player removed from their current world
-2. **PlayerDisconnectEvent** - Player fully disconnected
+## When This Event is NOT Triggered
+
+- Regular teleportation between worlds (using `Teleport` component)
+- Player disconnect/reconnect
+- `/warp` or similar teleport commands
+
+For regular world transfers, only `AddPlayerToWorldEvent` is triggered when the player enters the new world.
+
+## How to Test This Event
+
+To trigger `DrainPlayerFromWorldEvent` for testing:
+
+1. Create a secondary (non-default) world
+2. Teleport a player to that world
+3. Remove the world using `Universe.get().removeWorld(worldName)`
+4. The player will be "drained" to the default world and this event fires
+
+```java
+// Example: Trigger DrainPlayerFromWorldEvent by removing a world
+World worldToRemove = Universe.get().getWorld("my-temp-world");
+if (worldToRemove != null) {
+    boolean removed = Universe.get().removeWorld("my-temp-world");
+    // DrainPlayerFromWorldEvent fires for each player in that world
+}
+```
 
 ## Notes
 
 This event cannot be cancelled, but you can control where the player goes by using `setWorld()` and `setTransform()`. The destination can be:
-- Another world in the server
-- A specific position within the new world
+- Another world in the server (if not the one being removed)
+- A specific position within the destination world
 - A spawn point based on custom logic
 
 The `transform` includes both position and rotation data, allowing you to control exactly where and how the player appears in their destination.
 
-If the player is disconnecting rather than transferring worlds, the world and transform may be set to handle where the player appears if they reconnect.
+This event is specifically designed for world shutdown scenarios, allowing plugins to save data and redirect players appropriately when a world is being removed from the server.
 
 ## Source Reference
 

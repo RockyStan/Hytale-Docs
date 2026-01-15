@@ -413,6 +413,23 @@ eventBus.register(EventPriority.NORMAL, PlayerChatEvent.class, event -> {
 | `ChangeGameModeEvent` | ECS | Yes | Game mode change |
 | `InteractivelyPickupItemEvent` | ECS | Yes | Item pickup |
 | `DiscoverZoneEvent.Display` | ECS | Yes | Zone display |
+| `DiscoverInstanceEvent` | ECS | No | Instance discovery |
+| `DiscoverInstanceEvent.Display` | ECS | Yes | Instance discovery UI display |
+| `MoonPhaseChangeEvent` | ECS | No | Moon phase changed |
+| `TreasureChestOpeningEvent` | ECS | No | Treasure chest opened |
+
+### Miscellaneous Events
+
+| Event | Type | Cancellable | Description |
+|-------|------|-------------|-------------|
+| `MessagesUpdated` | Sync | No | i18n messages loaded/updated |
+| `GenerateDefaultLanguageEvent` | Sync | No | Default language generation |
+| `KillFeedEvent.DecedentMessage` | Sync | No | Death message for victim |
+| `KillFeedEvent.Display` | Sync | No | Kill feed UI display |
+| `KillFeedEvent.KillerMessage` | Sync | No | Kill message for attacker |
+| `SingleplayerRequestAccessEvent` | Sync | No | Singleplayer access request |
+| `PrefabPasteEvent` | Sync | Yes | Prefab pasted into world |
+| `PrefabPlaceEntityEvent` | Sync | No | Entity placed from prefab |
 
 ### Permission Events
 

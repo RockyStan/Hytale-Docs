@@ -438,6 +438,57 @@ CommandUtil.requirePermission(context.sender(), "some.permission");
 
 ---
 
+## CommandContext API
+
+The `CommandContext` object provides access to command execution context and sender information.
+
+### Available Methods
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `sender()` | `CommandSender` | Returns the command sender |
+| `isPlayer()` | `boolean` | Returns true if sender is a player |
+| `senderAs(Class<T>)` | `T` | Casts the sender to the specified type |
+| `senderAsPlayerRef()` | `Ref<EntityStore>` | Returns the player's entity reference |
+| `sendMessage(Message)` | `void` | Sends a message to the sender |
+| `getInputString()` | `String` | Returns the raw command input string |
+| `hasPermission(String)` | `boolean` | Checks if sender has a permission |
+
+### Getting Raw Command Input
+
+The `getInputString()` method returns the full raw input string that the user typed:
+
+```java
+@Override
+protected void executeSync(CommandContext context) {
+    // Get the raw input: "/mycommand arg1 arg2 arg3"
+    String rawInput = context.getInputString();
+
+    // Split into arguments
+    String[] args = rawInput.split("\\s+");
+    // args[0] = "mycommand" (or "/mycommand")
+    // args[1] = "arg1"
+    // args[2] = "arg2"
+    // ...
+}
+```
+
+### Sending Messages
+
+```java
+// Send a raw text message
+context.sendMessage(Message.raw("Hello, world!"));
+
+// Send a translated message
+context.sendMessage(Message.translation("server.commands.welcome"));
+
+// Send a formatted message with parameters
+context.sendMessage(Message.translation("server.commands.greeting")
+    .param("name", playerName));
+```
+
+---
+
 ## CommandSender Interface
 
 ```java

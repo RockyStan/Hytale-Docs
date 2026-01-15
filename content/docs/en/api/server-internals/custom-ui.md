@@ -1060,3 +1060,296 @@ All 57 `.ui` layout files found in the server code:
 - `Pages/Memories/MemoriesPanel.ui`
 - `Pages/Portals/BulletPoint.ui`
 - `Pages/Portals/Pill.ui`
+
+## Creating Custom UI Layouts (Asset Packs)
+
+To create truly custom UI layouts, you need to distribute `.ui` files as part of an asset pack to clients.
+
+### Requirements
+
+1. **File Location**: UI files must be in `resources/Common/UI/Custom/`
+2. **Manifest**: Add `"IncludesAssetPack": true` to your plugin's `manifest.json`
+
+### UI Markup Syntax
+
+UI files use a hierarchical markup language:
+
+```
+Group {
+  Label #Title {
+    Text: "My Custom UI";
+    Style: $Common.@DefaultLabelStyle;
+    Anchor: (Top: 10, Width: 300, Height: 40);
+  }
+
+  TextField #SearchInput {
+    Style: $Common.@DefaultInputFieldStyle;
+    Background: $Common.@InputBoxBackground;
+    Anchor: (Top: 60, Width: 200, Height: 50);
+  }
+
+  Button #SubmitButton {
+    Text: "Submit";
+    Style: $Common.@DefaultTextButtonStyle;
+    Anchor: (Top: 120, Width: 100, Height: 40);
+  }
+}
+```
+
+### Markup Elements
+
+| Element | Description | Properties |
+|---------|-------------|------------|
+| `Group` | Container for other elements | `LayoutMode`, `Padding` |
+| `Label` | Text display | `Text`, `Style`, `Anchor` |
+| `TextField` | Text input | `Style`, `Background`, `PlaceholderText` |
+| `Button` | Clickable button | `Text`, `Style` |
+
+### Markup Properties
+
+| Property | Description | Example |
+|----------|-------------|---------|
+| `#identifier` | Element ID for Java access | `#MyButton` |
+| `Style` | Reference to style definition | `$Common.@DefaultLabelStyle` |
+| `Anchor` | Position and size | `(Top: 10, Width: 200, Height: 50)` |
+| `Background` | Texture reference | `$Common.@InputBoxBackground` |
+| `LayoutMode` | Child arrangement | `Center`, `Top` |
+| `Padding` | Internal spacing | `(Left: 10, Right: 10)` |
+
+### Style References
+
+- `$filename.@styleName` - Reference style from external file
+- `@styleName` - Reference style in same file
+
+Common styles from `Common.ui`:
+- `@DefaultLabelStyle`
+- `@DefaultInputFieldStyle`
+- `@DefaultTextButtonStyle`
+- `@SecondaryTextButtonStyle`
+- `@InputBoxBackground`
+
+### Using Custom Layouts
+
+```java
+public class MyCustomPage extends InteractiveCustomUIPage<MyEventData> {
+
+    // Reference your custom layout
+    public static final String LAYOUT = "Custom/MyPage.ui";
+
+    @Override
+    public void build(...) {
+        // Load your custom layout
+        commandBuilder.append(LAYOUT);
+
+        // Access elements by ID
+        commandBuilder.set("#Title.Text", "Welcome!");
+        commandBuilder.set("#SearchInput.PlaceholderText", "Search...");
+
+        // Bind events
+        eventBuilder.addEventBinding(
+            CustomUIEventBindingType.Activating,
+            "#SubmitButton",
+            new EventData().append("Action", "Submit"),
+            false
+        );
+    }
+}
+```
+
+### Limitations Without Asset Packs
+
+Without distributing custom `.ui` files:
+
+- You can only use **existing layouts** (PluginListPage.ui, EntitySpawnPage.ui, etc.)
+- You must **repurpose existing elements** (use #Spawn button for teleport, etc.)
+- `appendInline()` works but requires exact markup syntax knowledge
+- `Common/TextButton.ui` and similar components have specific internal structure
+
+This is why most server-only plugins reuse layouts like `PluginListPage.ui` with `PluginListButton.ui` for list items.
+
+## Reusable Button Components
+
+Different button layouts have different property access patterns. Use the correct syntax based on which component you're using.
+
+### Available Button Components
+
+| Component | Direct Properties | Nested Properties | Styles |
+|-----------|------------------|-------------------|--------|
+| `Pages/BasicTextButton.ui` | `.Text`, `.Style` | - | `LabelStyle`, `SelectedLabelStyle` |
+| `Pages/PluginListButton.ui` | - | `#Button.Text`, `#CheckBox.Value/Visible` | `LabelStyle`, `SelectedLabelStyle` |
+| `Common/TextButton.ui` | `.Text`, `.Style` | - | `LabelStyle`, `SelectedLabelStyle` |
+| `Pages/WarpEntryButton.ui` | - | Specific to warp list | - |
+
+### BasicTextButton.ui Pattern (Simplest)
+
+Best for simple lists where you just need text items.
+
+```java
+// Define styles
+private static final Value<String> BUTTON_STYLE = Value.ref("Pages/BasicTextButton.ui", "LabelStyle");
+private static final Value<String> BUTTON_SELECTED = Value.ref("Pages/BasicTextButton.ui", "SelectedLabelStyle");
+
+// In build() method
+commandBuilder.append("Pages/InstanceListPage.ui");  // Layout with #List container
+
+for (int i = 0; i < items.size(); i++) {
+    commandBuilder.append("#List", "Pages/BasicTextButton.ui");
+    // Direct property access - no nested selector needed
+    commandBuilder.set("#List[" + i + "].Text", items.get(i));
+    commandBuilder.set("#List[" + i + "].Style", isSelected(i) ? BUTTON_SELECTED : BUTTON_STYLE);
+
+    eventBuilder.addEventBinding(
+        CustomUIEventBindingType.Activating,
+        "#List[" + i + "]",  // Bind to entire button
+        new EventData().append("Index", String.valueOf(i)),
+        false
+    );
+}
+```
+
+### PluginListButton.ui Pattern (With Checkbox)
+
+Best when you need a checkbox alongside the button (e.g., enable/disable options).
+
+```java
+// Define styles
+private static final Value<String> STYLE_NORMAL = Value.ref("Pages/PluginListButton.ui", "LabelStyle");
+private static final Value<String> STYLE_SELECTED = Value.ref("Pages/PluginListButton.ui", "SelectedLabelStyle");
+
+// In build() method
+commandBuilder.append("Pages/PluginListPage.ui");  // Layout with #PluginList container
+
+for (int i = 0; i < items.size(); i++) {
+    String selector = "#PluginList[" + i + "]";
+    commandBuilder.append("#PluginList", "Pages/PluginListButton.ui");
+
+    // Nested property access - must use #Button and #CheckBox
+    commandBuilder.set(selector + " #Button.Text", items.get(i));
+    commandBuilder.set(selector + " #Button.Style", isSelected(i) ? STYLE_SELECTED : STYLE_NORMAL);
+    commandBuilder.set(selector + " #CheckBox.Visible", false);  // Hide checkbox if not needed
+
+    eventBuilder.addEventBinding(
+        CustomUIEventBindingType.Activating,
+        selector + " #Button",  // Bind to #Button inside the container
+        new EventData().append("Index", String.valueOf(i)),
+        false
+    );
+}
+```
+
+### Common/TextButton.ui Pattern
+
+Used with EntitySpawnPage.ui and similar builder pages.
+
+```java
+// Define styles
+private static final Value<String> BUTTON_STYLE = Value.ref("Common/TextButton.ui", "LabelStyle");
+private static final Value<String> BUTTON_SELECTED = Value.ref("Common/TextButton.ui", "SelectedLabelStyle");
+
+// In build() method
+commandBuilder.append("Pages/EntitySpawnPage.ui");  // Has #NPCList and #ModelList
+
+for (int i = 0; i < items.size(); i++) {
+    commandBuilder.append("#NPCList", "Common/TextButton.ui");
+    // Direct property access
+    commandBuilder.set("#NPCList[" + i + "].Text", items.get(i));
+    commandBuilder.set("#NPCList[" + i + "].Style", isSelected(i) ? BUTTON_SELECTED : BUTTON_STYLE);
+
+    eventBuilder.addEventBinding(
+        CustomUIEventBindingType.Activating,
+        "#NPCList[" + i + "]",
+        new EventData().append("Index", String.valueOf(i)),
+        false
+    );
+}
+```
+
+### Compatible Layout + Button Combinations
+
+| Page Layout | List Container | Compatible Button Layout |
+|-------------|----------------|-------------------------|
+| `Pages/PluginListPage.ui` | `#PluginList` | `Pages/PluginListButton.ui` |
+| `Pages/InstanceListPage.ui` | `#List` | `Pages/BasicTextButton.ui` |
+| `Pages/CommandListPage.ui` | `#CommandList` | `Pages/BasicTextButton.ui` |
+| `Pages/EntitySpawnPage.ui` | `#NPCList`, `#ModelList` | `Common/TextButton.ui` |
+| `Pages/PrefabListPage.ui` | `#FileList` | `Pages/BasicTextButton.ui` |
+| `Pages/WarpListPage.ui` | `#WarpList` | `Pages/WarpEntryButton.ui` |
+
+### Complete Example: Custom List UI
+
+This example shows a complete page using BasicTextButton.ui for a clean, simple list:
+
+```java
+public class SimpleListPage extends InteractiveCustomUIPage<SimpleListPage.EventData> {
+
+    private static final String LAYOUT = "Pages/InstanceListPage.ui";
+    private static final Value<String> STYLE = Value.ref("Pages/BasicTextButton.ui", "LabelStyle");
+    private static final Value<String> STYLE_SELECTED = Value.ref("Pages/BasicTextButton.ui", "SelectedLabelStyle");
+
+    private String[] items = {"Create World", "Delete World", "Edit World", "Teleport"};
+    private int selectedIndex = -1;
+
+    public SimpleListPage(@Nonnull PlayerRef playerRef) {
+        super(playerRef, CustomPageLifetime.CanDismiss, EventData.CODEC);
+    }
+
+    @Override
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder cmd,
+            @Nonnull UIEventBuilder evt,
+            @Nonnull Store<EntityStore> store
+    ) {
+        cmd.append(LAYOUT);
+
+        for (int i = 0; i < items.length; i++) {
+            cmd.append("#List", "Pages/BasicTextButton.ui");
+            cmd.set("#List[" + i + "].Text", items[i]);
+            cmd.set("#List[" + i + "].Style", i == selectedIndex ? STYLE_SELECTED : STYLE);
+
+            evt.addEventBinding(
+                CustomUIEventBindingType.Activating,
+                "#List[" + i + "]",
+                new EventData().append("Index", String.valueOf(i)),
+                false
+            );
+        }
+    }
+
+    @Override
+    public void handleDataEvent(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull Store<EntityStore> store,
+            @Nonnull EventData data
+    ) {
+        if (data.index != null) {
+            int newIndex = Integer.parseInt(data.index);
+
+            UICommandBuilder cmd = new UICommandBuilder();
+
+            // Deselect previous
+            if (selectedIndex >= 0) {
+                cmd.set("#List[" + selectedIndex + "].Style", STYLE);
+            }
+
+            // Select new
+            selectedIndex = newIndex;
+            cmd.set("#List[" + selectedIndex + "].Style", STYLE_SELECTED);
+
+            this.sendUpdate(cmd, false);
+        }
+    }
+
+    public static class EventData {
+        public static final BuilderCodec<EventData> CODEC = BuilderCodec.builder(
+            EventData.class, EventData::new
+        )
+        .append(new KeyedCodec<>("Index", Codec.STRING), (e, v) -> e.index = v, e -> e.index)
+        .add()
+        .build();
+
+        private String index;
+        public EventData() {}
+    }
+}
+```
