@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Github, MessageCircle, Twitter } from "lucide-react";
 import { FooterAd } from "@/components/ads";
+import { useCookieConsent } from "@/contexts/cookie-consent-context";
 
 const socialLinks = [
   { title: "Twitter", href: "https://twitter.com/Hytale", icon: Twitter },
@@ -12,6 +13,7 @@ const socialLinks = [
 
 export function Footer() {
   const t = useTranslations("footer");
+  const { openPreferences } = useCookieConsent();
 
   const footerLinks = {
     gameplay: [
@@ -155,6 +157,12 @@ export function Footer() {
               >
                 {t("contribute")}
               </Link>
+              <button
+                onClick={openPreferences}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t("cookieSettings")}
+              </button>
             </div>
           </div>
         </div>

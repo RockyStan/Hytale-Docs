@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import mermaid from "mermaid";
+import dynamic from "next/dynamic";
+import { type ReactNode } from "react";
 
 // Extract text from React children recursively
 function getTextContent(node: ReactNode): string {
@@ -10,127 +10,48 @@ function getTextContent(node: ReactNode): string {
   if (typeof node === "number") return String(node);
   if (Array.isArray(node)) return node.map(getTextContent).join("");
   if (typeof node === "object" && "props" in node) {
-    return getTextContent((node as any).props?.children);
+    return getTextContent((node as { props?: { children?: ReactNode } }).props?.children);
   }
   return "";
 }
 
-// Initialize mermaid with Hytale theme
-mermaid.initialize({
-  startOnLoad: false,
-  theme: "base",
-  securityLevel: "loose",
-  themeVariables: {
-    // Background colors
-    background: "transparent",
-    primaryColor: "#253649",
-    secondaryColor: "#1a2332",
-    tertiaryColor: "#2d3f54",
+// Loading skeleton component
+function MermaidSkeleton() {
+  return (
+    <div className="my-8 w-full">
+      <div className="mermaid-container rounded-xl border-2 border-border bg-card/50 p-8 overflow-x-auto flex justify-center">
+        <div className="flex flex-col items-center gap-4 py-8">
+          <div className="animate-pulse flex flex-col items-center gap-3">
+            <div className="h-4 w-32 bg-muted-foreground/20 rounded" />
+            <div className="h-24 w-48 bg-muted-foreground/10 rounded-lg" />
+            <div className="flex gap-2">
+              <div className="h-3 w-16 bg-muted-foreground/20 rounded" />
+              <div className="h-3 w-20 bg-muted-foreground/20 rounded" />
+            </div>
+          </div>
+          <span className="text-sm text-muted-foreground">Loading diagram...</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-    // Border colors
-    primaryBorderColor: "#e8a849",
-    secondaryBorderColor: "#4a90a8",
-    tertiaryBorderColor: "#3d5168",
-
-    // Text colors - ensure visibility
-    primaryTextColor: "#e2e8f0",
-    secondaryTextColor: "#94a3b8",
-    tertiaryTextColor: "#64748b",
-    textColor: "#e2e8f0",
-
-    // Line colors
-    lineColor: "#4a90a8",
-
-    // Node colors
-    nodeBorder: "#e8a849",
-    nodeTextColor: "#e2e8f0",
-
-    // Flowchart specific
-    mainBkg: "#253649",
-    nodeBkg: "#253649",
-    clusterBkg: "#1e2b3d",
-    clusterBorder: "#3d5168",
-
-    // Label colors
-    labelBackground: "#1a2332",
-    labelTextColor: "#e2e8f0",
-    edgeLabelBackground: "#1a2332",
-
-    // Arrow
-    arrowheadColor: "#e8a849",
-
-    // Font
-    fontFamily: "ui-sans-serif, system-ui, sans-serif",
-    fontSize: "14px",
-  },
-  flowchart: {
-    curve: "basis",
-    padding: 30,
-    nodeSpacing: 60,
-    rankSpacing: 60,
-    htmlLabels: false,
-    useMaxWidth: false,
-  },
-  sequence: {
-    actorMargin: 50,
-    boxMargin: 10,
-    boxTextMargin: 5,
-    noteMargin: 10,
-    messageMargin: 35,
-    useMaxWidth: false,
-  },
-});
+// Dynamically import the actual Mermaid renderer to avoid SSR issues
+const MermaidRenderer = dynamic(
+  () => import("./mermaid-renderer").then((mod) => mod.MermaidRenderer),
+  {
+    ssr: false,
+    loading: () => <MermaidSkeleton />,
+  }
+);
 
 interface MermaidProps {
   chart: ReactNode;
 }
 
 export function Mermaid({ chart }: MermaidProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [svg, setSvg] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-
   // Extract text content from React children (handles syntax highlighted spans)
   const chartString = typeof chart === "string" ? chart : getTextContent(chart);
 
-  useEffect(() => {
-    const renderChart = async () => {
-      if (!containerRef.current || !chartString.trim()) return;
-
-      try {
-        // Generate unique ID for this chart
-        const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-
-        // Render the chart
-        const { svg } = await mermaid.render(id, chartString);
-        setSvg(svg);
-        setError(null);
-      } catch (err) {
-        console.error("Mermaid rendering error:", err);
-        console.error("Chart content:", chartString);
-        setError("Failed to render diagram");
-      }
-    };
-
-    renderChart();
-  }, [chartString]);
-
-  if (error) {
-    return (
-      <div className="my-6 rounded-xl border-2 border-red-500/50 bg-red-500/10 p-4 text-red-400">
-        <p className="text-sm font-medium">Diagram Error</p>
-        <pre className="mt-2 text-xs opacity-75 whitespace-pre-wrap">{chartString}</pre>
-      </div>
-    );
-  }
-
-  return (
-    <div className="my-8 w-full">
-      <div
-        ref={containerRef}
-        className="mermaid-container rounded-xl border-2 border-border bg-card/50 p-8 overflow-x-auto flex justify-center"
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
-    </div>
-  );
+  return <MermaidRenderer chartString={chartString} />;
 }

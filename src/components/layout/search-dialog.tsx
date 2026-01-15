@@ -22,6 +22,7 @@ import {
   Users,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface SearchResult {
   title: string;
@@ -106,18 +107,20 @@ export function SearchDialog() {
     return () => clearTimeout(timeoutId);
   }, [query]);
 
-  // Handle keyboard navigation
+  // Handle keyboard navigation with wrapping
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
         setSelectedIndex((prev) =>
-          prev < results.length - 1 ? prev + 1 : prev
+          prev < results.length - 1 ? prev + 1 : 0
         );
         break;
       case "ArrowUp":
         e.preventDefault();
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        setSelectedIndex((prev) =>
+          prev > 0 ? prev - 1 : results.length - 1
+        );
         break;
       case "Enter":
         e.preventDefault();
@@ -174,10 +177,10 @@ export function SearchDialog() {
         </kbd>
       </button>
 
-      {/* Mobile search button */}
+      {/* Mobile search button - 44x44px minimum touch target */}
       <button
         onClick={() => setOpen(true)}
-        className="sm:hidden flex items-center justify-center h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+        className="sm:hidden flex items-center justify-center min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
       >
         <Search className="h-5 w-5" />
         <span className="sr-only">{t("search")}</span>
@@ -189,7 +192,7 @@ export function SearchDialog() {
 
           {/* Search input */}
           <div className="flex items-center gap-3 px-4 border-b border-border">
-            <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+            <Search className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
             <input
               ref={inputRef}
               type="text"
@@ -197,14 +200,46 @@ export function SearchDialog() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
+              aria-label={t("search")}
+              aria-describedby="search-instructions"
+              aria-controls="search-results"
               className="flex-1 h-14 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-base"
             />
             {isLoading && (
-              <Loader2 className="h-5 w-5 text-muted-foreground animate-spin shrink-0" />
+              <>
+                <Loader2 className="h-5 w-5 text-muted-foreground animate-spin shrink-0" aria-hidden="true" />
+                <VisuallyHidden aria-live="polite" aria-atomic="true">
+                  {t("loading") || "Loading search results"}
+                </VisuallyHidden>
+              </>
             )}
             <kbd className="hidden sm:inline-flex h-6 items-center rounded border border-border bg-background px-2 font-mono text-xs text-muted-foreground">
               ESC
             </kbd>
+          </div>
+
+          {/* Screen reader instructions */}
+          <VisuallyHidden id="search-instructions">
+            {t("typeToSearch")}. {t("navigate")} {t("select")}
+          </VisuallyHidden>
+
+          {/* Aria-live region for search results */}
+          <div
+            id="search-results"
+            role="region"
+            aria-live="polite"
+            aria-atomic="false"
+          >
+            <VisuallyHidden>
+              {!isLoading && query && results.length === 0 && (
+                <span>{t("noResults")} &quot;{query}&quot;</span>
+              )}
+              {!isLoading && results.length > 0 && (
+                <span>
+                  {results.length} {results.length > 1 ? t("results") : t("result")}
+                </span>
+              )}
+            </VisuallyHidden>
           </div>
 
           {/* Results */}
@@ -245,7 +280,7 @@ export function SearchDialog() {
             )}
 
             {results.length > 0 && (
-              <div className="py-2">
+              <div className="py-2" role="listbox" aria-label={t("results")}>
                 {Object.entries(groupedResults).map(([category, items]) => {
                   const CategoryIcon = categoryIcons[category] || FileText;
                   return (
@@ -264,6 +299,8 @@ export function SearchDialog() {
                             key={result.href}
                             onClick={() => navigateToResult(result)}
                             onMouseEnter={() => setSelectedIndex(flatIndex)}
+                            aria-selected={isSelected}
+                            role="option"
                             className={cn(
                               "w-full px-4 py-3 flex items-start gap-3 text-left transition-colors",
                               isSelected ? "bg-muted" : "hover:bg-muted/50"

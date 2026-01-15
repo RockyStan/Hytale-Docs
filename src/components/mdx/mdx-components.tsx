@@ -1,6 +1,7 @@
 import type { MDXComponents } from "mdx/types";
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { InfoBox } from "./info-box";
 import { FeatureCard } from "./feature-card";
 import { ApiEndpoint } from "./api-endpoint";
@@ -186,9 +187,11 @@ export const mdxComponents: MDXComponents = {
       {...props}
     />
   ),
-  pre: ({ children, className, ...props }: any) => {
+  pre: ({ children, className, ...props }: React.ComponentPropsWithoutRef<"pre">) => {
     // Check if this is a mermaid code block
-    const childProps = children?.props;
+    // Children is typically a <code> element with props
+    const childElement = React.isValidElement(children) ? children : null;
+    const childProps = childElement?.props as { className?: string; children?: React.ReactNode } | undefined;
     const childClassName = childProps?.className || "";
 
     // Handle mermaid diagrams - pass raw children, Mermaid will extract text
@@ -254,12 +257,45 @@ export const mdxComponents: MDXComponents = {
       />
     );
   },
-  img: ({ className, alt, ...props }) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      className={cn("rounded-lg border border-border", className)}
-      alt={alt}
-      {...props}
-    />
-  ),
+  img: ({ className, alt, src, width, height, ...props }) => {
+    // Handle external images or images without dimensions
+    const isExternal = typeof src === "string" && (src.startsWith("http://") || src.startsWith("https://"));
+
+    // If no src provided, return null
+    if (!src) return null;
+
+    // Parse width and height, providing defaults for responsive images
+    const imgWidth = typeof width === "number" ? width : (typeof width === "string" ? parseInt(width, 10) : 800);
+    const imgHeight = typeof height === "number" ? height : (typeof height === "string" ? parseInt(height, 10) : 600);
+
+    // For external images, use unoptimized mode to avoid domain configuration issues
+    if (isExternal) {
+      return (
+        <Image
+          src={src}
+          alt={alt || ""}
+          width={imgWidth}
+          height={imgHeight}
+          className={cn("rounded-lg border border-border", className)}
+          loading="lazy"
+          unoptimized
+          {...props}
+        />
+      );
+    }
+
+    // For local images, use Next.js image optimization
+    return (
+      <Image
+        src={src}
+        alt={alt || ""}
+        width={imgWidth}
+        height={imgHeight}
+        className={cn("rounded-lg border border-border", className)}
+        loading="lazy"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px"
+        {...props}
+      />
+    );
+  },
 };

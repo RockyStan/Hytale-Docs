@@ -34,7 +34,8 @@ export function LanguageSelector() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground hover:bg-muted"
+          aria-label={`Select language. Current: ${currentLanguage?.name || "Select language"}`}
         >
           <Globe className="h-5 w-5" />
           <span className="sr-only">

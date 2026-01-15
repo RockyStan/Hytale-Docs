@@ -12,6 +12,7 @@ import { mdxComponents } from "@/components/mdx";
 import { remarkAdmonitions } from "@/lib/remark-admonitions";
 import { ArticleAd } from "@/components/ads";
 import { BreadcrumbJsonLd, ArticleJsonLd } from "@/components/seo/json-ld";
+import { DocsBreadcrumb, TableOfContents, extractHeadings, BackToTop } from "@/components/layout";
 
 const BASE_URL = "https://hytale-docs.com";
 
@@ -93,122 +94,121 @@ export default async function DocPage({ params }: DocPageProps) {
     })),
   ];
 
+  // Build breadcrumb items for the visual component
+  const visualBreadcrumbItems = actualSlug.map((segment, index) => ({
+    label: segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "),
+    href: index === actualSlug.length - 1
+      ? undefined
+      : `/docs/${actualSlug.slice(0, index + 1).join("/")}`,
+  }));
+
+  // Extract headings for table of contents
+  const tocItems = extractHeadings(doc.content);
+
   const articleUrl = locale === "en"
     ? `${BASE_URL}/docs/${actualSlug.join("/")}`
     : `${BASE_URL}/${locale}/docs/${actualSlug.join("/")}`;
 
   return (
-    <article className="max-w-5xl py-6 lg:py-8 lg:pr-8">
-      {/* Structured Data */}
-      <BreadcrumbJsonLd items={breadcrumbItems} />
-      <ArticleJsonLd
-        title={doc.meta.title}
-        description={doc.meta.description || ""}
-        url={articleUrl}
-      />
-
-      {/* Breadcrumb */}
-      <nav className="mb-8 flex items-center gap-2 text-sm">
-        <Link
-          href="/docs"
-          className="text-muted-foreground hover:text-primary transition-colors"
-        >
-          Docs
-        </Link>
-        {actualSlug.map((segment, index) => (
-          <span key={index} className="flex items-center gap-2">
-            <span className="text-border">/</span>
-            {index === actualSlug.length - 1 ? (
-              <span className="text-primary font-medium">{segment}</span>
-            ) : (
-              <Link
-                href={`/docs/${actualSlug.slice(0, index + 1).join("/")}`}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                {segment}
-              </Link>
-            )}
-          </span>
-        ))}
-      </nav>
-
-      {/* Title */}
-      <h1 className="text-4xl font-bold tracking-tight text-gradient mb-4">
-        {doc.meta.title}
-      </h1>
-
-      {doc.meta.description && (
-        <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
-          {doc.meta.description}
-        </p>
-      )}
-
-      {/* Separator */}
-      <div className="h-px bg-gradient-to-r from-primary/50 via-border to-transparent mb-10" />
-
-      {/* Content */}
-      <div className="prose prose-slate dark:prose-invert max-w-none">
-        <MDXRemote
-          source={doc.content}
-          components={mdxComponents}
-          options={{
-            mdxOptions: {
-              remarkPlugins: [remarkGfm, remarkAdmonitions],
-              rehypePlugins: [rehypeSlug, [rehypePrismPlus, { ignoreMissing: true }]],
-            },
-          }}
+    <div className="flex gap-8">
+      <article className="max-w-4xl flex-1 min-w-0 py-6 lg:py-8">
+        {/* Structured Data */}
+        <BreadcrumbJsonLd items={breadcrumbItems} />
+        <ArticleJsonLd
+          title={doc.meta.title}
+          description={doc.meta.description || ""}
+          url={articleUrl}
         />
-      </div>
 
-      {/* Discrete ad after content */}
-      <ArticleAd />
+        {/* Breadcrumb */}
+        <div className="mb-8">
+          <DocsBreadcrumb items={visualBreadcrumbItems} />
+        </div>
 
-      {/* Navigation */}
-      <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-12" />
+        {/* Title */}
+        <h1 className="text-4xl font-bold tracking-tight text-gradient mb-4">
+          {doc.meta.title}
+        </h1>
 
-      <nav className="flex items-stretch gap-4">
-        {prev ? (
-          <Link
-            href={prev.href}
-            className="flex-1 group p-5 rounded-xl border-2 border-border bg-card/30 transition-all duration-300 hover:border-secondary/50 hover:bg-card/50"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/10 transition-colors group-hover:bg-secondary/20">
-                <ChevronLeft className="h-5 w-5 text-secondary" />
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{t("previous")}</div>
-                <div className="font-semibold text-foreground group-hover:text-secondary transition-colors">
-                  {prev.title}
-                </div>
-              </div>
-            </div>
-          </Link>
-        ) : (
-          <div className="flex-1" />
+        {doc.meta.description && (
+          <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
+            {doc.meta.description}
+          </p>
         )}
 
-        {next ? (
-          <Link
-            href={next.href}
-            className="flex-1 group p-5 rounded-xl border-2 border-border bg-card/30 transition-all duration-300 hover:border-primary/50 hover:bg-card/50"
-          >
-            <div className="flex items-center justify-end gap-3">
-              <div className="text-right">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{t("next")}</div>
-                <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {next.title}
+        {/* Separator */}
+        <div className="h-px bg-gradient-to-r from-primary/50 via-border to-transparent mb-10" />
+
+        {/* Content */}
+        <div className="prose prose-slate dark:prose-invert max-w-none">
+          <MDXRemote
+            source={doc.content}
+            components={mdxComponents}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkGfm, remarkAdmonitions],
+                rehypePlugins: [rehypeSlug, [rehypePrismPlus, { ignoreMissing: true }]],
+              },
+            }}
+          />
+        </div>
+
+        {/* Discrete ad after content */}
+        <ArticleAd />
+
+        {/* Navigation */}
+        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-12" />
+
+        <nav className="flex items-stretch gap-4">
+          {prev ? (
+            <Link
+              href={prev.href}
+              className="flex-1 group p-5 rounded-xl border-2 border-border bg-card/30 transition-all duration-300 hover:border-secondary/50 hover:bg-card/50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/10 transition-colors group-hover:bg-secondary/20">
+                  <ChevronLeft className="h-5 w-5 text-secondary" />
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{t("previous")}</div>
+                  <div className="font-semibold text-foreground group-hover:text-secondary transition-colors">
+                    {prev.title}
+                  </div>
                 </div>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
-                <ChevronRight className="h-5 w-5 text-primary" />
+            </Link>
+          ) : (
+            <div className="flex-1" />
+          )}
+
+          {next ? (
+            <Link
+              href={next.href}
+              className="flex-1 group p-5 rounded-xl border-2 border-border bg-card/30 transition-all duration-300 hover:border-primary/50 hover:bg-card/50"
+            >
+              <div className="flex items-center justify-end gap-3">
+                <div className="text-right">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{t("next")}</div>
+                  <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {next.title}
+                  </div>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                  <ChevronRight className="h-5 w-5 text-primary" />
+                </div>
               </div>
-            </div>
-          </Link>
-        ) : (
-          <div className="flex-1" />
-        )}
-      </nav>
-    </article>
+            </Link>
+          ) : (
+            <div className="flex-1" />
+          )}
+        </nav>
+      </article>
+
+      {/* Table of Contents - Right Sidebar */}
+      <TableOfContents items={tocItems} />
+
+      {/* Back to Top Button */}
+      <BackToTop />
+    </div>
   );
 }

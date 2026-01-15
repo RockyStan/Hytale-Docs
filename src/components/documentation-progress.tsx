@@ -91,11 +91,13 @@ export function DocumentationProgress() {
               </span>
             </button>
 
-            {/* Expand button for mobile */}
+            {/* Expand button for mobile - 44x44px minimum touch target */}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="md:hidden p-1 rounded hover:bg-muted/50 text-muted-foreground"
-              aria-label={isExpanded ? "Collapse" : "Expand"}
+              className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-muted/50 text-muted-foreground"
+              aria-label={isExpanded ? "Collapse progress details" : "Expand progress details"}
+              aria-expanded={isExpanded}
+              aria-controls="mobile-progress-details"
             >
               {isExpanded ? (
                 <ChevronUp className="h-4 w-4" />
@@ -107,7 +109,7 @@ export function DocumentationProgress() {
 
           {/* Expanded view for mobile */}
           {isExpanded && (
-            <div className="md:hidden pb-3 space-y-2">
+            <div id="mobile-progress-details" className="md:hidden pb-3 space-y-2">
               {documentationProgress.categories.map((category) => {
                 const percent = getCategoryProgress(category);
                 return (
@@ -130,11 +132,11 @@ export function DocumentationProgress() {
           )}
         </div>
 
-        {/* Close button */}
+        {/* Close button - 44x44px minimum touch target */}
         <button
           onClick={handleDismiss}
-          className="absolute right-2 top-3 p-1.5 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Close"
+          className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Dismiss progress banner"
         >
           <X className="h-4 w-4" />
         </button>

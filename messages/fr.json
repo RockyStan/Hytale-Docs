@@ -310,7 +310,8 @@
     "copyright": "HytaleDocs. Non affilie a Hypixel Studios.",
     "contribute": "Contribuer",
     "privacy": "Confidentialite",
-    "terms": "Conditions"
+    "terms": "Conditions",
+    "cookieSettings": "Gestion des cookies"
   },
   "tools": {
     "title": "Outils Developpeur",
@@ -414,11 +415,45 @@
     "next": "Suivant",
     "learnMore": "En savoir plus"
   },
+  "breadcrumb": {
+    "navigation": "Navigation fil d'Ariane",
+    "home": "Accueil",
+    "docs": "Documentation"
+  },
+  "backToTop": {
+    "label": "Retour en haut"
+  },
+  "tableOfContents": {
+    "title": "Sur cette page",
+    "navigation": "Table des matières"
+  },
   "cookies": {
     "title": "Nous utilisons des cookies",
-    "description": "Nous utilisons des cookies pour ameliorer votre experience de navigation et analyser le trafic du site. En cliquant sur \"Tout accepter\", vous consentez a notre utilisation des cookies.",
+    "description": "Nous utilisons des cookies pour ameliorer votre experience de navigation, analyser le trafic du site et afficher des publicites personnalisees. Vous pouvez personnaliser vos preferences ci-dessous.",
     "acceptAll": "Tout accepter",
-    "essentialOnly": "Essentiels uniquement"
+    "rejectAll": "Tout refuser",
+    "customize": "Personnaliser",
+    "close": "Fermer",
+    "privacyNote": "Vous pouvez modifier vos preferences a tout moment depuis",
+    "cookieSettings": "Gestion des cookies",
+    "preferencesTitle": "Preferences de cookies",
+    "preferencesDescription": "Gerez vos preferences de cookies. Les cookies essentiels sont necessaires au fonctionnement du site et ne peuvent pas etre desactives.",
+    "savePreferences": "Enregistrer les preferences",
+    "cancel": "Annuler",
+    "categories": {
+      "essential": {
+        "title": "Cookies essentiels",
+        "description": "Ces cookies sont necessaires au bon fonctionnement du site. Ils permettent des fonctionnalites de base comme la navigation et l'acces aux zones securisees."
+      },
+      "analytics": {
+        "title": "Cookies analytiques",
+        "description": "Ces cookies nous aident a comprendre comment les visiteurs interagissent avec notre site en collectant des informations anonymes sur les pages visitees et le comportement des utilisateurs."
+      },
+      "advertising": {
+        "title": "Cookies publicitaires",
+        "description": "Ces cookies sont utilises pour vous montrer des publicites pertinentes en fonction de vos interets. Ils peuvent suivre votre activite de navigation sur differents sites web."
+      }
+    }
   },
   "adblock": {
     "title": "Soutenez HytaleDocs",
@@ -430,7 +465,17 @@
     "lastUpdated": "Derniere mise a jour",
     "intro": {
       "title": "Introduction",
-      "content": "HytaleDocs (\"nous\", \"notre\") s'engage a proteger votre vie privee. Cette politique de confidentialite explique comment nous collectons, utilisons et protegeons vos informations lorsque vous visitez notre site hytale-docs.com."
+      "content": "HytaleDocs (\"nous\", \"notre\") s'engage a proteger votre vie privee. Cette politique de confidentialite explique comment nous collectons, utilisons et protegeons vos informations lorsque vous visitez notre site hytale-docs.com. Cette politique est conforme au Reglement General sur la Protection des Donnees (RGPD) et aux autres lois applicables en matiere de protection des donnees."
+    },
+    "lawfulBasis": {
+      "title": "Base Legale du Traitement",
+      "content": "Nous traitons vos donnees personnelles sur les bases legales suivantes conformement a l'article 6 du RGPD :",
+      "consent": "Consentement",
+      "consentDesc": "Pour les cookies non essentiels (analytiques et publicitaires), nous obtenons votre consentement explicite via notre banniere de cookies avant tout traitement.",
+      "legitimateInterest": "Interet Legitime",
+      "legitimateInterestDesc": "Pour la securite du site, la prevention de la fraude et l'amelioration de nos services. Nous nous assurons que nos interets ne priment pas sur vos droits fondamentaux.",
+      "contract": "Execution du Contrat",
+      "contractDesc": "Lorsque cela est necessaire pour vous fournir les services demandes ou repondre a vos demandes."
     },
     "dataCollection": {
       "title": "Informations Collectees",
@@ -447,21 +492,83 @@
       "analytics": "Cookies analytiques",
       "analyticsDesc": "Nous aident a comprendre comment les visiteurs interagissent avec notre site",
       "advertising": "Cookies publicitaires",
-      "advertisingDesc": "Utilises pour afficher des publicites pertinentes"
+      "advertisingDesc": "Utilises pour afficher des publicites pertinentes",
+      "detailsTitle": "Details des Cookies",
+      "detailsIntro": "Voici la liste detaillee des cookies utilises sur ce site :",
+      "tableName": "Nom du Cookie",
+      "tablePurpose": "Finalite",
+      "tableDuration": "Duree",
+      "tableType": "Type",
+      "consentCookieDesc": "Stocke vos preferences de consentement aux cookies",
+      "themeCookieDesc": "Stocke votre theme prefere (mode clair/sombre)",
+      "localeCookieDesc": "Stocke votre preference de langue",
+      "gaCookieDesc": "Google Analytics - suit les statistiques d'utilisation anonymes",
+      "adsCookieDesc": "Google AdSense - permet la publicite personnalisee",
+      "year": "an",
+      "years": "ans",
+      "months": "mois"
+    },
+    "retention": {
+      "title": "Politique de Conservation des Donnees",
+      "content": "Nous conservons vos donnees personnelles uniquement le temps necessaire pour atteindre les finalites pour lesquelles elles ont ete collectees :",
+      "analytics": "Donnees analytiques",
+      "analyticsDesc": "Les donnees agregees et anonymisees sont conservees jusqu'a 26 mois. Les donnees de session individuelles ne sont pas stockees.",
+      "cookies": "Preferences de cookies",
+      "cookiesDesc": "Vos preferences de consentement aux cookies sont stockees pendant 1 an, apres quoi il vous sera demande de consentir a nouveau.",
+      "logs": "Journaux serveur",
+      "logsDesc": "Les journaux d'acces serveur contenant les adresses IP sont conserves 30 jours pour des raisons de securite, puis automatiquement supprimes."
     },
     "thirdParty": {
       "title": "Services Tiers",
       "content": "Nous utilisons les services tiers suivants :",
-      "adsense": "Google AdSense affiche des publicites. Google peut utiliser des cookies pour personnaliser les annonces selon votre historique de navigation.",
+      "adsense": "Google AdSense affiche des publicites. Google peut utiliser des cookies pour personnaliser les annonces selon votre historique de navigation. Vous pouvez refuser la publicite personnalisee sur https://adssettings.google.com",
       "analytics": "Analytiques respectueux de la vie privee pour comprendre l'utilisation du site sans suivre les donnees personnelles."
     },
-    "rights": {
-      "title": "Vos Droits",
-      "content": "Vous avez le droit d'acceder, de corriger ou de supprimer vos donnees personnelles. Vous pouvez gerer les preferences de cookies via les parametres de votre navigateur ou notre banniere de consentement."
+    "transfers": {
+      "title": "Transferts Internationaux de Donnees",
+      "content": "Certains de nos prestataires de services tiers sont situes en dehors de l'Espace Economique Europeen (EEE). Lorsque nous transferons vos donnees a l'international, nous nous assurons que des garanties appropriees sont en place :",
+      "google": "Situe aux Etats-Unis. Les transferts sont proteges par le Cadre de Protection des Donnees UE-US.",
+      "vercel": "Notre hebergeur, situe aux Etats-Unis. Les transferts sont proteges par des Clauses Contractuelles Types (CCT).",
+      "safeguards": "Nous veillons a ce que tous les transferts internationaux soient conformes aux exigences du RGPD par le biais de decisions d'adequation, de Clauses Contractuelles Types ou d'autres mecanismes de transfert approuves."
+    },
+    "gdprRights": {
+      "title": "Vos Droits en vertu du RGPD",
+      "intro": "En vertu du Reglement General sur la Protection des Donnees, vous disposez des droits suivants concernant vos donnees personnelles :",
+      "access": "Droit d'Acces",
+      "accessDesc": "Vous pouvez demander une copie de toutes les donnees personnelles que nous detenons a votre sujet.",
+      "rectification": "Droit de Rectification",
+      "rectificationDesc": "Vous pouvez demander la correction de toute donnee personnelle inexacte ou incomplete.",
+      "erasure": "Droit a l'Effacement",
+      "erasureDesc": "Vous pouvez demander la suppression de vos donnees personnelles (\"droit a l'oubli\") lorsqu'elles ne sont plus necessaires au traitement.",
+      "restriction": "Droit a la Limitation",
+      "restrictionDesc": "Vous pouvez demander que nous limitions l'utilisation de vos donnees pendant la resolution d'une plainte.",
+      "portability": "Droit a la Portabilite",
+      "portabilityDesc": "Vous pouvez demander vos donnees dans un format structure et lisible par machine pour les transferer vers un autre service.",
+      "object": "Droit d'Opposition",
+      "objectDesc": "Vous pouvez vous opposer au traitement fonde sur l'interet legitime, y compris le profilage et le marketing direct.",
+      "withdraw": "Droit de Retirer le Consentement",
+      "withdrawDesc": "Lorsque le traitement est fonde sur le consentement, vous pouvez retirer votre consentement a tout moment sans affecter le traitement anterieur.",
+      "exerciseRights": "Pour exercer l'un de ces droits, veuillez nous contacter en utilisant les coordonnees fournies dans la section Contact Protection des Donnees ci-dessous."
+    },
+    "dpo": {
+      "title": "Contact Protection des Donnees",
+      "content": "Pour toute question, preoccupation ou demande concernant vos donnees personnelles et vos droits a la vie privee, vous pouvez nous contacter via :",
+      "email": "Email",
+      "github": "GitHub",
+      "githubDesc": "Ouvrir un ticket sur notre depot GitHub",
+      "response": "Nous repondrons a toutes les demandes legitimes dans un delai de 30 jours. Dans les cas complexes, nous pouvons prolonger ce delai de 60 jours supplementaires, et nous vous informerons de toute prolongation."
+    },
+    "complaint": {
+      "title": "Droit de Deposer une Plainte",
+      "content": "Si vous estimez que vos droits en matiere de protection des donnees ont ete violes, vous avez le droit de deposer une plainte aupres d'une autorite de controle. Vous pouvez contacter l'autorite de protection des donnees de votre pays de residence, de votre lieu de travail ou du lieu de l'infraction presumee. Une liste des autorites de protection des donnees de l'UE est disponible sur https://edpb.europa.eu/about-edpb/about-edpb/members_fr"
+    },
+    "changes": {
+      "title": "Modifications de cette Politique",
+      "content": "Nous pouvons mettre a jour cette politique de confidentialite de temps en temps. Nous vous informerons de tout changement important en publiant la nouvelle politique sur cette page et en mettant a jour la date de \"Derniere mise a jour\". Nous vous encourageons a consulter cette politique periodiquement."
     },
     "contact": {
       "title": "Nous Contacter",
-      "content": "Si vous avez des questions concernant cette politique de confidentialite, veuillez nous contacter via notre depot GitHub."
+      "content": "Si vous avez des questions concernant cette politique de confidentialite ou nos pratiques en matiere de donnees, veuillez nous contacter via notre depot GitHub ou a privacy@hytale-docs.com."
     }
   },
   "docProgress": {
@@ -487,32 +594,108 @@
     "toastTitle": "Avis Documentation",
     "toastMessage": "Cette documentation est maintenue par la communaute et basee sur du code decompile. Certaines informations peuvent etre inexactes ou obsoletes."
   },
+  "error": {
+    "title": "Une erreur est survenue",
+    "description": "Une erreur inattendue s'est produite lors du chargement de cette page.",
+    "details": "Nous nous excusons pour la gene occasionnee. Veuillez reessayer ou retourner a l'accueil.",
+    "errorCode": "Code d'erreur",
+    "tryAgain": "Reessayer",
+    "backToHome": "Retour a l'accueil"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "La page que vous recherchez n'existe pas ou a ete deplacee.",
+    "suggestion": "Essayez de rechercher ce dont vous avez besoin ou parcourez notre documentation.",
+    "searchPlaceholder": "Rechercher dans la documentation...",
+    "searchButton": "Rechercher",
+    "or": "ou",
+    "backToHome": "Retour a l'accueil",
+    "browseDocs": "Parcourir la documentation"
+  },
   "terms": {
     "title": "Conditions d'Utilisation",
     "lastUpdated": "Derniere mise a jour",
     "acceptance": {
       "title": "Acceptation des Conditions",
-      "content": "En accedant et en utilisant HytaleDocs, vous acceptez d'etre lie par ces conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre site."
+      "content": "En accedant et en utilisant HytaleDocs, vous acceptez d'etre lie par ces conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre site. Ces conditions constituent un accord juridiquement contraignant entre vous et HytaleDocs."
     },
     "use": {
       "title": "Utilisation du Contenu",
-      "content": "Le contenu de HytaleDocs est fourni a des fins d'information et d'education. Vous pouvez utiliser la documentation pour des projets personnels et commerciaux lies au developpement Hytale."
+      "content": "Le contenu de HytaleDocs est fourni a des fins d'information et d'education. Vous pouvez utiliser la documentation pour des projets personnels et commerciaux lies au developpement Hytale, sous reserve des conditions de licence specifiees ci-dessous."
     },
     "content": {
       "title": "Contributions",
-      "content": "Si vous contribuez du contenu a HytaleDocs, vous nous accordez une licence non exclusive pour utiliser, modifier et distribuer vos contributions dans le cadre de la documentation."
+      "content": "Si vous contribuez du contenu a HytaleDocs, vous nous accordez une licence non exclusive, mondiale et libre de redevances pour utiliser, modifier, reproduire et distribuer vos contributions dans le cadre de la documentation. Vous garantissez que vous avez le droit de faire ces contributions."
+    },
+    "license": {
+      "title": "Licence du Contenu",
+      "content": "Le contenu de HytaleDocs est mis a disposition sous des conditions de licence specifiques :",
+      "documentation": "Contenu Documentaire",
+      "documentationDesc": "Tous les textes de documentation, guides et tutoriels sont licencies sous Creative Commons Attribution 4.0 International (CC BY 4.0). Vous pouvez partager et adapter le contenu a toute fin, y compris commerciale, avec attribution appropriee.",
+      "code": "Exemples de Code",
+      "codeDesc": "Les extraits et exemples de code sont licencies sous la Licence MIT. Vous etes libre d'utiliser, modifier et distribuer les exemples de code sans restriction.",
+      "attribution": "Exigences d'Attribution",
+      "attributionDesc": "Lors de l'utilisation du contenu CC BY 4.0, veuillez crediter \"HytaleDocs (hytale-docs.com)\" et indiquer si des modifications ont ete apportees.",
+      "restrictions": "Restrictions : Vous ne pouvez pas pretendre a une affiliation officielle avec Hypixel Studios ou Riot Games lors de l'utilisation de notre contenu. Les marques et actifs Hytale restent la propriete de leurs detenteurs respectifs."
     },
     "disclaimer": {
-      "title": "Avertissement",
-      "content": "HytaleDocs est fourni \"tel quel\" sans garantie d'aucune sorte. Nous ne garantissons pas l'exactitude, l'exhaustivite ou l'actualite des informations. Hytale est en Early Access et les specifications peuvent changer."
+      "title": "Exclusion de Garanties",
+      "content": "HytaleDocs est fourni \"TEL QUEL\" et \"TEL QUE DISPONIBLE\" sans garantie d'aucune sorte, expresse ou implicite, y compris mais sans s'y limiter les garanties implicites de commercialisation, d'adequation a un usage particulier, d'exactitude et de non-contrefacon. Nous ne garantissons pas l'exactitude, l'exhaustivite, la fiabilite ou l'actualite des informations. Hytale est en Early Access et les specifications peuvent changer sans preavis. Nous ne garantissons pas que le site sera ininterrompu, securise ou exempt d'erreurs."
+    },
+    "liability": {
+      "title": "Limitation de Responsabilite",
+      "content": "Dans toute la mesure permise par la loi applicable, HytaleDocs et ses contributeurs ne seront pas responsables de tout dommage indirect, accessoire, special, consecutif ou punitif, y compris mais sans s'y limiter :",
+      "item1": "Perte de profits, de donnees ou d'opportunites commerciales",
+      "item2": "Dommages resultant de l'utilisation ou de l'impossibilite d'utiliser le site",
+      "item3": "Dommages resultant de la confiance accordee a toute information obtenue via le site",
+      "item4": "Dommages causes par du contenu ou des services tiers lies a notre site",
+      "cap": "Notre responsabilite totale pour toute reclamation decoulant de votre utilisation du site ne depassera pas le montant que vous nous avez paye (le cas echeant) pour acceder aux services premium au cours des 12 mois precedant la reclamation. En tant que ressource communautaire gratuite, cela signifie generalement une responsabilite nulle."
+    },
+    "indemnification": {
+      "title": "Indemnisation",
+      "content": "Vous acceptez d'indemniser, defendre et degager de toute responsabilite HytaleDocs, ses mainteneurs, contributeurs et affilies de toute reclamation, responsabilite, dommage, perte et depense (y compris les frais juridiques raisonnables) decoulant de :",
+      "item1": "Votre utilisation du site ou de tout contenu obtenu a partir de celui-ci",
+      "item2": "Votre violation de ces Conditions d'Utilisation",
+      "item3": "Votre violation des droits de tiers, y compris les droits de propriete intellectuelle"
+    },
+    "thirdParty": {
+      "title": "Liens vers des Sites Tiers",
+      "content": "Notre site peut contenir des liens vers des sites et services tiers. Nous ne sommes pas responsables du contenu, des politiques de confidentialite ou des pratiques de ces sites externes. Votre utilisation des sites tiers est a vos propres risques, et nous vous encourageons a consulter leurs conditions et politiques."
     },
     "affiliation": {
       "title": "Non-Affiliation",
-      "content": "HytaleDocs est un projet communautaire et n'est pas affilie, approuve ou lie a Hypixel Studios ou Riot Games. Hytale est une marque deposee de Hypixel Studios."
+      "content": "HytaleDocs est un projet communautaire independant et n'est pas affilie, approuve, sponsorise ou lie a Hypixel Studios, Riot Games ou a l'un de leurs affilies. Hytale est une marque deposee de Hypixel Studios. Toutes les autres marques sont la propriete de leurs detenteurs respectifs."
+    },
+    "termination": {
+      "title": "Resiliation",
+      "content": "Nous nous reservons le droit de mettre fin ou de suspendre votre acces au site a tout moment, sans preavis ni responsabilite, pour quelque raison que ce soit, y compris la violation de ces Conditions. A la resiliation, toutes les dispositions de ces Conditions qui, par leur nature, devraient survivre, survivront, y compris les dispositions de propriete, les exclusions de garantie, l'indemnisation et les limitations de responsabilite."
+    },
+    "disputes": {
+      "title": "Resolution des Litiges",
+      "content": "Tout litige decoulant de ces Conditions ou de votre utilisation du site sera resolu selon le processus suivant :",
+      "informal": "Resolution Informelle",
+      "informalDesc": "Nous vous encourageons a nous contacter d'abord pour resoudre tout probleme de maniere informelle. La plupart des preoccupations peuvent etre resolues rapidement par une communication directe via notre depot GitHub.",
+      "mediation": "Mediation",
+      "mediationDesc": "Si la resolution informelle echoue, les parties conviennent de tenter une mediation avant de poursuivre toute action en justice.",
+      "legal": "Procedures Judiciaires",
+      "legalDesc": "Si la mediation echoue, les litiges seront resolus par les tribunaux specifies dans la section Droit Applicable."
+    },
+    "governing": {
+      "title": "Droit Applicable",
+      "content": "Ces Conditions seront regies et interpretees conformement aux lois de l'Union Europeenne et de l'Etat membre applicable ou reside le mainteneur principal, sans egard a ses dispositions en matiere de conflit de lois.",
+      "jurisdiction": "Vous acceptez que toute action en justice ou procedure decoulant de ces Conditions soit intentee exclusivement devant les tribunaux de l'Etat membre de l'Union Europeenne ou reside le mainteneur principal, et vous consentez a la competence de ces tribunaux."
+    },
+    "severability": {
+      "title": "Divisibilite",
+      "content": "Si une disposition de ces Conditions est jugee inapplicable ou invalide par un tribunal competent, cette disposition sera limitee ou eliminee dans la mesure minimale necessaire afin que ces Conditions restent par ailleurs pleinement en vigueur."
     },
     "changes": {
       "title": "Modifications des Conditions",
-      "content": "Nous nous reservons le droit de modifier ces conditions a tout moment. L'utilisation continue du site apres les modifications constitue l'acceptation des nouvelles conditions."
+      "content": "Nous nous reservons le droit de modifier ces conditions a tout moment. Les modifications importantes seront communiquees en mettant a jour la date de \"Derniere mise a jour\" en haut de cette page. L'utilisation continue du site apres les modifications constitue l'acceptation des nouvelles conditions. Nous vous encourageons a consulter ces Conditions periodiquement."
+    },
+    "contact": {
+      "title": "Coordonnees",
+      "content": "Pour toute question concernant ces Conditions d'Utilisation, veuillez nous contacter via notre depot GitHub a https://github.com/HytaleDocs/wiki-next ou par email a legal@hytale-docs.com."
     }
   }
 }

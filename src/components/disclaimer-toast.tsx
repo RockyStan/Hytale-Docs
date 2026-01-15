@@ -67,10 +67,14 @@ export function DisclaimerToast() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-sm animate-in slide-in-from-bottom-5 fade-in duration-300">
+    <div
+      className="fixed bottom-4 right-4 z-50 max-w-sm animate-in slide-in-from-bottom-5 fade-in duration-300"
+      role="status"
+      aria-live="polite"
+    >
       <div className="bg-background border border-orange-500/30 rounded-lg shadow-lg p-4">
         <div className="flex gap-3">
-          <AlertTriangle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" aria-hidden="true" />
           <div className="flex-1 space-y-2">
             <p className="font-medium text-orange-500">{t("toastTitle")}</p>
             <p className="text-sm text-muted-foreground">{t("toastMessage")}</p>
@@ -81,15 +85,15 @@ export function DisclaimerToast() {
               className="inline-flex items-center gap-1 text-sm text-orange-500 hover:text-orange-400 font-medium transition-colors"
             >
               {t("reportLink")}
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />
             </a>
           </div>
           <button
             onClick={handleDismiss}
-            className="p-1 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors h-fit"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Close"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
       </div>

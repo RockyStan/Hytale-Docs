@@ -113,17 +113,18 @@ export function Navbar() {
             {/* Search */}
             <SearchDialog />
 
-            {/* GitHub */}
+            {/* GitHub - 44x44px minimum touch target */}
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+              className="min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground hover:bg-muted"
               asChild
             >
               <a
                 href="https://github.com/timiliris/Hytale-Docs"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="GitHub repository (opens in new tab)"
               >
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
@@ -136,13 +137,14 @@ export function Navbar() {
             {/* Theme Toggle */}
             <ThemeToggle />
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu - 44x44px minimum touch target */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild className="lg:hidden">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className="min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground hover:bg-muted"
+                  aria-label={t("menu")}
                 >
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">{t("menu")}</span>

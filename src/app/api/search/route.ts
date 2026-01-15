@@ -5,6 +5,14 @@ import matter from "gray-matter";
 
 const contentDirectory = path.join(process.cwd(), "content/docs");
 
+// Cache configuration
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
 interface SearchResult {
   title: string;
   description: string;
@@ -19,7 +27,28 @@ interface DocMeta {
   sidebar_label?: string;
 }
 
+// In-memory cache for docs by locale
+const docsCache = new Map<string, CacheEntry<SearchResult[]>>();
+
+// In-memory cache for search results
+const searchCache = new Map<string, CacheEntry<SearchResult[]>>();
+
+function isCacheValid<T>(entry: CacheEntry<T> | undefined): entry is CacheEntry<T> {
+  if (!entry) return false;
+  return Date.now() - entry.timestamp < CACHE_TTL;
+}
+
+function getCacheKey(query: string, locale: string): string {
+  return `${locale}:${query.toLowerCase().trim()}`;
+}
+
 function getAllDocs(locale: string = "fr"): SearchResult[] {
+  // Check cache first
+  const cached = docsCache.get(locale);
+  if (isCacheValid(cached)) {
+    return cached.data;
+  }
+
   const docsDirectory = path.join(contentDirectory, locale);
   const results: SearchResult[] = [];
 
@@ -66,7 +95,7 @@ function getAllDocs(locale: string = "fr"): SearchResult[] {
               api: "API",
               tools: "Outils",
               guides: "Guides",
-              community: "Communauté",
+              community: "Communaute",
             },
             en: {
               "getting-started": "Getting Started",
@@ -97,10 +126,24 @@ function getAllDocs(locale: string = "fr"): SearchResult[] {
   }
 
   walkDir(docsDirectory);
+
+  // Cache the results
+  docsCache.set(locale, {
+    data: results,
+    timestamp: Date.now(),
+  });
+
   return results;
 }
 
 function searchDocs(query: string, locale: string = "fr"): SearchResult[] {
+  // Check search cache first
+  const cacheKey = getCacheKey(query, locale);
+  const cached = searchCache.get(cacheKey);
+  if (isCacheValid(cached)) {
+    return cached.data;
+  }
+
   const allDocs = getAllDocs(locale);
   const searchTerms = query.toLowerCase().split(/\s+/).filter(Boolean);
 
@@ -144,7 +187,25 @@ function searchDocs(query: string, locale: string = "fr"): SearchResult[] {
     .slice(0, 10); // Limit to 10 results
 
   // Remove score from returned results
-  return scoredResults.map(({ score, ...doc }) => doc);
+  const results = scoredResults.map(({ score: _score, ...doc }) => doc);
+
+  // Cache the search results
+  searchCache.set(cacheKey, {
+    data: results,
+    timestamp: Date.now(),
+  });
+
+  // Clean up old cache entries periodically (keep cache size manageable)
+  if (searchCache.size > 100) {
+    const now = Date.now();
+    for (const [key, entry] of searchCache.entries()) {
+      if (now - entry.timestamp >= CACHE_TTL) {
+        searchCache.delete(key);
+      }
+    }
+  }
+
+  return results;
 }
 
 export async function GET(request: NextRequest) {
@@ -153,12 +214,29 @@ export async function GET(request: NextRequest) {
   const locale = searchParams.get("locale") || "fr";
 
   if (!query || query.trim().length === 0) {
-    return NextResponse.json({ results: [] });
+    return NextResponse.json(
+      { results: [] },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
+        },
+      }
+    );
   }
 
   try {
     const results = searchDocs(query, locale);
-    return NextResponse.json({ results });
+    return NextResponse.json(
+      { results },
+      {
+        headers: {
+          // Cache successful search results for 5 minutes
+          "Cache-Control": "public, max-age=300, stale-while-revalidate=600",
+          // Add Vary header for proper caching with different locales
+          "Vary": "Accept-Encoding",
+        },
+      }
+    );
   } catch (error) {
     console.error("Search error:", error);
     return NextResponse.json(

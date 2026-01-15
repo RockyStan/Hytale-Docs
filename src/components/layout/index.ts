@@ -3,3 +3,8 @@ export { Footer } from "./footer";
 export { Sidebar, MobileSidebar } from "./sidebar";
 export { ThemeToggle } from "./theme-toggle";
 export { LanguageSelector } from "./language-selector";
+export { DocsBreadcrumb } from "./breadcrumb";
+export { BackToTop } from "./back-to-top";
+export { TableOfContents } from "./table-of-contents";
+export { extractHeadings } from "@/lib/extract-headings";
+export type { TocItem } from "@/lib/extract-headings";

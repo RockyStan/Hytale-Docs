@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { CookieConsentProvider } from "@/contexts/cookie-consent-context";
 import { CookieConsent } from "@/components/cookie-consent";
+import { CookiePreferencesDialog } from "@/components/cookie-preferences";
 import { AdblockDetector } from "@/components/ads";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/json-ld";
 import { NextIntlClientProvider } from "next-intl";
@@ -188,8 +190,11 @@ export default async function LocaleLayout({
           storageKey="hytaledocs-theme"
         >
           <NextIntlClientProvider messages={messages}>
-            {children}
-            <CookieConsent />
+            <CookieConsentProvider>
+              {children}
+              <CookieConsent />
+              <CookiePreferencesDialog />
+            </CookieConsentProvider>
             <AdblockDetector />
           </NextIntlClientProvider>
         </ThemeProvider>

@@ -95,19 +95,21 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
         {children}
       </pre>
 
-      {/* Copy button */}
+      {/* Copy button - always visible for keyboard users, with focus ring */}
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-3 top-3 h-8 w-8 opacity-0 transition-all duration-200 group-hover:opacity-100 bg-muted/50 hover:bg-muted"
+        className="absolute right-3 top-3 min-h-[44px] min-w-[44px] opacity-70 transition-all duration-200 hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 bg-muted/50 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onClick={handleCopy}
+        aria-pressed={copied}
+        aria-label={copied ? "Code copied" : "Copy code"}
       >
         {copied ? (
           <Check className="h-4 w-4 text-[--color-hytale-green]" />
         ) : (
           <Copy className="h-4 w-4 text-muted-foreground" />
         )}
-        <span className="sr-only">Copy code</span>
+        <span className="sr-only">{copied ? "Code copied" : "Copy code"}</span>
       </Button>
     </div>
   );
