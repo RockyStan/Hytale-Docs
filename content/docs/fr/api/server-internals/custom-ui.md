@@ -45,25 +45,318 @@ Tous les fichiers de layout ne sont pas disponibles sur chaque client. Utilisez 
 
 ### Layouts Core Serveur (Toujours Disponibles)
 
-| Layout | Utilise Par | Description |
-|--------|-------------|-------------|
-| `Pages/PluginListPage.ui` | Commande `/plugins` | Liste avec checkboxes et panneau de detail |
-| `Pages/CommandListPage.ui` | Commande `/commands` | Liste de commandes avec recherche |
-| `Pages/BasicTextButton.ui` | Diverses pages | Composant bouton simple |
-| `Pages/PluginListButton.ui` | Liste de plugins | Bouton avec checkbox |
+| Layout | Utilise Par | Selecteurs Cles |
+|--------|-------------|-----------------|
+| `Pages/PluginListPage.ui` | Commande `/plugins` | `#PluginList`, `#PluginName`, `#PluginDescription` |
+| `Pages/PluginListButton.ui` | Elements de liste | `#Button`, `#CheckBox` |
+| `Pages/CommandListPage.ui` | Commande `/commands` | `#CommandList`, `#SubcommandCards` |
+| `Pages/BasicTextButton.ui` | Diverses pages | `LabelStyle`, `SelectedLabelStyle` |
+| `Common/TextButton.ui` | Composant bouton | `LabelStyle`, `SelectedLabelStyle` |
 
 ### Layouts Adventure/Builtin (Peuvent Ne Pas Etre Disponibles)
 
 Ces layouts peuvent ne fonctionner que lorsque des packs de contenu specifiques sont charges :
 
-| Layout | Module | Risque |
-|--------|--------|--------|
-| `Pages/DialogPage.ui` | Adventure Objectives | Peut ne pas exister |
-| `Pages/ShopPage.ui` | Adventure Shop | Peut ne pas exister |
-| `Pages/BarterPage.ui` | Adventure Barter | Peut ne pas exister |
-| `Pages/MemoriesPanel.ui` | Adventure Memories | Peut ne pas exister |
+| Layout | Module | Selecteurs Cles |
+|--------|--------|-----------------|
+| `Pages/DialogPage.ui` | Adventure Objectives | `#EntityName`, `#Dialog`, `#CloseButton` |
+| `Pages/ShopPage.ui` | Adventure Shop | `#ElementList` |
+| `Pages/ShopElementButton.ui` | Elements boutique | `#Icon`, `#Name`, `#Description`, `#Cost` |
+| `Pages/BarterPage.ui` | Adventure Barter | `#TradeGrid`, `#TradeButton` |
+| `Pages/BarterTradeRow.ui` | Elements troc | `#OutputSlot`, `#InputSlot` |
+| `Pages/Memories/*.ui` | Adventure Memories | `#IconList`, `#RecordButton` |
 
-**Recommandation** : Utilisez `Pages/PluginListPage.ui` comme layout de base - c'est garanti de fonctionner.
+### Layouts Outils de Construction
+
+| Layout | Utilise Par | Selecteurs Cles |
+|--------|-------------|-----------------|
+| `Pages/EntitySpawnPage.ui` | Spawn NPC | `#NPCList`, `#ModelList`, `#ScaleSlider` |
+| `Pages/PrefabListPage.ui` | Navigateur prefab | `#FileList` |
+| `Pages/ParticleSpawnPage.ui` | Test particules | `#ParticleSystemList` |
+| `Pages/ImageImportPage.ui` | Import image | Elements navigateur |
+
+### Layouts Portail/Teleporteur
+
+| Layout | Utilise Par | Selecteurs Cles |
+|--------|-------------|-----------------|
+| `Pages/PortalDeviceSummon.ui` | Invocation portail | `#Artwork`, `#Pills`, `#SummonButton` |
+| `Pages/Teleporter.ui` | Config teleporteur | `#WorldDropdown`, `#WarpDropdown` |
+| `Pages/WarpListPage.ui` | Liste warps | `#WarpList` |
+
+**Recommandation** : Utilisez `Pages/PluginListPage.ui` ou `Pages/EntitySpawnPage.ui` comme layout de base - ils sont garantis de fonctionner.
+
+## Elements UI Testes
+
+Ces elements ont ete **testes et verifies fonctionnels** dans des plugins :
+
+### Elements EntitySpawnPage.ui
+
+| Element | Selecteur | Type | Proprietes |
+|---------|-----------|------|------------|
+| **Champ Recherche** | `#SearchInput` | Champ de saisie | `.Value`, `.PlaceholderText` |
+| **Slider Scale** | `#ScaleSlider` | Slider | `.Value` (float 0-1) |
+| **Slider Rotation** | `#RotationOffset` | Slider | `.Value` (float) |
+| **Champ Count** | `#Count` | Champ numerique | `.Value` |
+| **Boutons Onglet** | `#TabNPC`, `#TabItems`, `#TabModel` | Boutons | `.Style` |
+| **Bouton Spawn** | `#Spawn` | Bouton | Evenement Activating |
+| **Bouton Clear** | `#ClearMaterial` | Bouton | Evenement Activating |
+| **Slot Item** | `#ItemMaterialSlot` | Slot drag-drop | Evenement Dropped |
+
+### Elements PluginListPage.ui
+
+| Element | Selecteur | Type | Proprietes |
+|---------|-----------|------|------------|
+| **Nom Plugin** | `#PluginName` | Texte | `.Text` |
+| **ID Plugin** | `#PluginIdentifier` | Texte | `.Text` |
+| **Version Plugin** | `#PluginVersion` | Texte | `.Text`, `.Visible` |
+| **Description** | `#PluginDescription` | Texte | `.Text` |
+| **Checkbox Option** | `#DescriptiveOnlyOption` | Conteneur | `.Visible` |
+| **Liste Plugins** | `#PluginList` | Conteneur Liste | `.clear()`, `.append()` |
+
+### Elements PluginListButton.ui (pour les items de liste)
+
+| Element | Selecteur | Type | Proprietes |
+|---------|-----------|------|------------|
+| **Bouton** | `#Button` | Bouton | `.Text`, `.Style`, evenement Activating |
+| **Checkbox** | `#CheckBox` | Checkbox | `.Value` (boolean), `.Visible`, evenement ValueChanged |
+
+### Elements TeleporterSettingsPage.ui (Dropdowns)
+
+| Element | Selecteur | Type | Proprietes |
+|---------|-----------|------|------------|
+| **Dropdown Monde** | `#WorldDropdown` | Dropdown | `.Entries`, `.Value` |
+| **Dropdown Warp** | `#WarpDropdown` | Dropdown | `.Entries`, `.Value` |
+
+### Exemple de Test Fonctionnel
+
+Ce code teste tous les types d'elements UI principaux avec `EntitySpawnPage.ui` :
+
+```java
+public class UIComponentTestPage extends InteractiveCustomUIPage<UIComponentTestPage.TestEventData> {
+
+    public static final String LAYOUT = "Pages/EntitySpawnPage.ui";
+
+    private static final Value<String> TAB_STYLE_ACTIVE = Value.ref("Common.ui", "DefaultTextButtonStyle");
+    private static final Value<String> TAB_STYLE_INACTIVE = Value.ref("Common.ui", "SecondaryTextButtonStyle");
+
+    public UIComponentTestPage(@Nonnull PlayerRef playerRef) {
+        super(playerRef, CustomPageLifetime.CanDismiss, TestEventData.CODEC);
+    }
+
+    @Override
+    public void build(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull UICommandBuilder commandBuilder,
+            @Nonnull UIEventBuilder eventBuilder,
+            @Nonnull Store<EntityStore> store
+    ) {
+        commandBuilder.append(LAYOUT);
+
+        // Placeholder du champ de saisie
+        commandBuilder.set("#SearchInput.PlaceholderText", "Tapez ici pour tester");
+
+        // Valeur initiale du slider
+        commandBuilder.set("#ScaleSlider.Value", 0.5f);
+
+        // Styles des boutons onglet
+        commandBuilder.set("#TabNPC.Style", TAB_STYLE_ACTIVE);
+        commandBuilder.set("#TabItems.Style", TAB_STYLE_INACTIVE);
+        commandBuilder.set("#TabModel.Style", TAB_STYLE_INACTIVE);
+
+        // Evenement changement champ de saisie (capture la valeur avec @)
+        eventBuilder.addEventBinding(
+            CustomUIEventBindingType.ValueChanged,
+            "#SearchInput",
+            new EventData().append("Action", "InputChanged").append("@Value", "#SearchInput.Value"),
+            false
+        );
+
+        // Evenement changement slider
+        eventBuilder.addEventBinding(
+            CustomUIEventBindingType.ValueChanged,
+            "#ScaleSlider",
+            new EventData().append("Action", "SliderChanged").append("@Value", "#ScaleSlider.Value"),
+            false
+        );
+
+        // Evenements boutons onglet
+        eventBuilder.addEventBinding(
+            CustomUIEventBindingType.Activating,
+            "#TabNPC",
+            new EventData().append("Action", "TabClick").append("Tab", "NPC"),
+            false
+        );
+        eventBuilder.addEventBinding(
+            CustomUIEventBindingType.Activating,
+            "#TabItems",
+            new EventData().append("Action", "TabClick").append("Tab", "Items"),
+            false
+        );
+        eventBuilder.addEventBinding(
+            CustomUIEventBindingType.Activating,
+            "#TabModel",
+            new EventData().append("Action", "TabClick").append("Tab", "Model"),
+            false
+        );
+
+        // Evenement bouton spawn
+        eventBuilder.addEventBinding(
+            CustomUIEventBindingType.Activating,
+            "#Spawn",
+            new EventData().append("Action", "SpawnClick"),
+            false
+        );
+    }
+
+    @Override
+    public void handleDataEvent(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull Store<EntityStore> store,
+            @Nonnull TestEventData data
+    ) {
+        UICommandBuilder commandBuilder = new UICommandBuilder();
+
+        if ("InputChanged".equals(data.action)) {
+            commandBuilder.set("#SearchInput.PlaceholderText", "Vous avez tape: " + data.value);
+        }
+        else if ("SliderChanged".equals(data.action)) {
+            commandBuilder.set("#SearchInput.PlaceholderText", "Slider: " + data.value);
+        }
+        else if ("TabClick".equals(data.action)) {
+            // Mettre a jour les styles des onglets
+            commandBuilder.set("#TabNPC.Style", "NPC".equals(data.tab) ? TAB_STYLE_ACTIVE : TAB_STYLE_INACTIVE);
+            commandBuilder.set("#TabItems.Style", "Items".equals(data.tab) ? TAB_STYLE_ACTIVE : TAB_STYLE_INACTIVE);
+            commandBuilder.set("#TabModel.Style", "Model".equals(data.tab) ? TAB_STYLE_ACTIVE : TAB_STYLE_INACTIVE);
+        }
+        else if ("SpawnClick".equals(data.action)) {
+            commandBuilder.set("#SearchInput.PlaceholderText", "Bouton Spawn clique!");
+        }
+
+        this.sendUpdate(commandBuilder, false);
+    }
+
+    public static class TestEventData {
+        public static final BuilderCodec<TestEventData> CODEC = BuilderCodec.builder(
+                TestEventData.class, TestEventData::new
+        )
+        .append(new KeyedCodec<>("Action", Codec.STRING), (e, s) -> e.action = s, e -> e.action)
+        .add()
+        .append(new KeyedCodec<>("Tab", Codec.STRING), (e, s) -> e.tab = s, e -> e.tab)
+        .add()
+        .append(new KeyedCodec<>("Value", Codec.STRING), (e, s) -> e.value = s, e -> e.value)
+        .add()
+        .build();
+
+        private String action;
+        private String tab;
+        private String value;
+
+        public TestEventData() {}
+    }
+}
+```
+
+### Exemple Dropdown (TeleporterSettingsPage)
+
+```java
+import com.hypixel.hytale.server.core.ui.DropdownEntryInfo;
+import com.hypixel.hytale.server.core.message.LocalizableString;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+// Dans votre methode build() :
+commandBuilder.append("Pages/Teleporter.ui");
+
+// Creer les entrees du dropdown
+ObjectArrayList<DropdownEntryInfo> options = new ObjectArrayList<>();
+options.add(new DropdownEntryInfo(LocalizableString.fromString("Option 1"), "opt1"));
+options.add(new DropdownEntryInfo(LocalizableString.fromString("Option 2"), "opt2"));
+options.add(new DropdownEntryInfo(LocalizableString.fromString("Option 3"), "opt3"));
+
+// Definir les entrees et la valeur selectionnee
+commandBuilder.set("#WorldDropdown.Entries", options);
+commandBuilder.set("#WorldDropdown.Value", "opt1");
+
+// Ecouter les changements de selection
+eventBuilder.addEventBinding(
+    CustomUIEventBindingType.ValueChanged,
+    "#WorldDropdown",
+    new EventData().append("Action", "DropdownChanged").append("@Value", "#WorldDropdown.Value"),
+    false
+);
+```
+
+## Reference des Proprietes UI
+
+Voici toutes les proprietes qui peuvent etre definies sur les elements UI via `commandBuilder.set()` :
+
+### Proprietes de Texte
+
+| Propriete | Type | Description | Exemple |
+|-----------|------|-------------|---------|
+| `.Text` | String/Message | Contenu textuel | `set("#Title.Text", "Bonjour")` |
+| `.TextSpans` | Message | Texte riche avec formatage | `set("#Name.TextSpans", Message.raw("Gras"))` |
+| `.PlaceholderText` | String/Message | Texte indicatif du champ | `set("#Input.PlaceholderText", "Entrez un nom...")` |
+
+### Visibilite et Etat
+
+| Propriete | Type | Description | Exemple |
+|-----------|------|-------------|---------|
+| `.Visible` | boolean | Afficher/masquer element | `set("#Panel.Visible", false)` |
+| `.Disabled` | boolean | Activer/desactiver interaction | `set("#Button.Disabled", true)` |
+
+### Valeurs et Donnees
+
+| Propriete | Type | Description | Exemple |
+|-----------|------|-------------|---------|
+| `.Value` | String/float/int | Valeur input, position slider | `set("#Slider.Value", 0.5f)` |
+| `.Entries` | DropdownEntryInfo[] | Options dropdown | `set("#Dropdown.Entries", options)` |
+| `.Slots` | ItemGridSlot[] | Slots inventaire | `set("#Grid.Slots", slots)` |
+| `.ItemId` | String | Item a afficher | `set("#Icon.ItemId", itemId)` |
+
+### Style et Apparence
+
+| Propriete | Type | Description | Exemple |
+|-----------|------|-------------|---------|
+| `.Style` | Value<String> | Reference de style visuel | `set("#Tab.Style", TAB_ACTIVE_STYLE)` |
+| `.Color` | String (hex) | Valeur couleur | `set("#Tint.Color", "#5B9E28")` |
+| `.Background` | String (chemin asset) | Image de fond | `set("#Artwork.Background", "Pages/Portals/splash.png")` |
+| `.AssetPath` | String (chemin asset) | Chemin asset/icone | `set("#Icon.AssetPath", iconPath)` |
+
+### Objets Complexes (via setObject)
+
+Ces proprietes necessitent `commandBuilder.setObject()` :
+
+| Type | Description | Exemple |
+|------|-------------|---------|
+| `LocalizableString` | Texte traduisible | `setObject("#Name.Text", LocalizableString.fromMessageId("key"))` |
+| `ItemStack` | Item avec quantite | `setObject("#Slot.Item", itemStack)` |
+| `ItemGridSlot` | Slot inventaire | `setObject("#Grid.Slots", slots)` |
+| `PatchStyle` | Style texture/patch | `setObject("#Panel.Style", patchStyle)` |
+| `DropdownEntryInfo` | Option dropdown | Utilise dans arrays pour `.Entries` |
+
+### Exemples Selecteur + Propriete
+
+```java
+// Propriete element basique
+commandBuilder.set("#PluginName.Text", "Mon Plugin");
+
+// Propriete element imbrique
+commandBuilder.set("#MainPage #Title.Text", "Bienvenue");
+
+// Propriete element tableau
+commandBuilder.set("#PluginList[0] #Button.Text", "Premier Element");
+
+// Input avec plusieurs proprietes
+commandBuilder.set("#SearchInput.Value", "");
+commandBuilder.set("#SearchInput.PlaceholderText", "Rechercher...");
+
+// Configuration dropdown
+List<DropdownEntryInfo> options = new ArrayList<>();
+options.add(new DropdownEntryInfo(LocalizableString.fromString("Option 1"), "opt1"));
+options.add(new DropdownEntryInfo(LocalizableString.fromString("Option 2"), "opt2"));
+commandBuilder.set("#Dropdown.Entries", options);
+commandBuilder.set("#Dropdown.Value", "opt1");
+```
 
 ## Exigences de Threading
 
@@ -538,6 +831,7 @@ commandBuilder.appendInline("#SomeContainer", "Label { Text: Extra; }");
 | Classe | Package |
 |--------|---------|
 | `CustomUIPage` | `com.hypixel.hytale.server.core.entity.entities.player.pages` |
+| `BasicCustomUIPage` | `com.hypixel.hytale.server.core.entity.entities.player.pages` |
 | `InteractiveCustomUIPage` | `com.hypixel.hytale.server.core.entity.entities.player.pages` |
 | `UICommandBuilder` | `com.hypixel.hytale.server.core.ui.builder` |
 | `UIEventBuilder` | `com.hypixel.hytale.server.core.ui.builder` |
@@ -545,3 +839,70 @@ commandBuilder.appendInline("#SomeContainer", "Label { Text: Extra; }");
 | `PageManager` | `com.hypixel.hytale.server.core.entity.entities.player.pages` |
 | `AbstractPlayerCommand` | `com.hypixel.hytale.server.core.command.system.basecommands` |
 | `NotificationUtil` | `com.hypixel.hytale.server.core.util` |
+
+## Implementations de Pages Integrees
+
+Voici toutes les implementations CustomUIPage dans Hytale - utiles comme reference :
+
+### Pages Core Serveur
+
+| Classe | Layout | Objectif |
+|--------|--------|----------|
+| `PluginListPage` | `Pages/PluginListPage.ui` | Gestion plugins (`/plugins`) |
+| `CommandListPage` | `Pages/CommandListPage.ui` | Aide commandes (`/commands`) |
+| `RespawnPage` | `Pages/RespawnPage.ui` | Ecran mort/respawn |
+| `ItemRepairPage` | `Pages/ItemRepairPage.ui` | Interface reparation |
+
+### Pages Outils de Construction
+
+| Classe | Layout | Objectif |
+|--------|--------|----------|
+| `EntitySpawnPage` | `Pages/EntitySpawnPage.ui` | Spawn NPC/entites |
+| `ChangeModelPage` | `Pages/ChangeModelPage.ui` | Selection modele |
+| `ParticleSpawnPage` | `Pages/ParticleSpawnPage.ui` | Test particules |
+| `PrefabPage` | `Pages/PrefabListPage.ui` | Navigateur prefab |
+| `ImageImportPage` | `Pages/ImageImportPage.ui` | Import image |
+| `ObjImportPage` | `Pages/ObjImportPage.ui` | Import modele 3D |
+
+### Pages Adventure
+
+| Classe | Layout | Objectif |
+|--------|--------|----------|
+| `DialogPage` | `Pages/DialogPage.ui` | Dialogue NPC |
+| `ShopPage` | `Pages/ShopPage.ui` | Interface boutique |
+| `BarterPage` | `Pages/BarterPage.ui` | Interface echange |
+| `MemoriesPage` | `Pages/Memories/*.ui` | Suivi collectibles |
+
+### Pages Portail/Teleporteur
+
+| Classe | Layout | Objectif |
+|--------|--------|----------|
+| `PortalDeviceSummonPage` | `Pages/PortalDeviceSummon.ui` | Invocation portail |
+| `PortalDeviceActivePage` | `Pages/PortalDeviceActive.ui` | Affichage portail actif |
+| `TeleporterSettingsPage` | `Pages/Teleporter.ui` | Config teleporteur |
+| `WarpListPage` | `Pages/WarpListPage.ui` | Selection warp |
+
+## Reference Complete des Fichiers Layout
+
+Les 57 fichiers `.ui` trouves dans le code serveur :
+
+### Layouts Core
+- `Common.ui` - Styles et constantes globaux
+- `Common/TextButton.ui` - Composant bouton reutilisable
+
+### Repertoire Pages (55 fichiers)
+- `Pages/PluginListPage.ui`, `Pages/PluginListButton.ui`
+- `Pages/CommandListPage.ui`, `Pages/SubcommandCard.ui`, `Pages/VariantCard.ui`
+- `Pages/DialogPage.ui`, `Pages/ShopPage.ui`, `Pages/ShopElementButton.ui`
+- `Pages/BarterPage.ui`, `Pages/BarterTradeRow.ui`, `Pages/BarterGridSpacer.ui`
+- `Pages/EntitySpawnPage.ui`, `Pages/ChangeModelPage.ui`
+- `Pages/PrefabListPage.ui`, `Pages/PrefabSavePage.ui`
+- `Pages/PortalDeviceSummon.ui`, `Pages/PortalDeviceActive.ui`, `Pages/PortalDeviceError.ui`
+- `Pages/Teleporter.ui`, `Pages/WarpListPage.ui`, `Pages/WarpEntryButton.ui`
+- `Pages/RespawnPage.ui`, `Pages/DroppedItemSlot.ui`
+- `Pages/ItemRepairPage.ui`, `Pages/ItemRepairElement.ui`
+- Et 30+ autres fichiers pour les outils de construction, instances, etc.
+
+### Sous-repertoires
+- `Pages/Memories/` - 5 fichiers pour le systeme de souvenirs
+- `Pages/Portals/` - 2 fichiers pour les elements de portail
